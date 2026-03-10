@@ -1,23 +1,28 @@
+const HeaderNav = () => {
 
-const HeaderNav = () =>{
-
-    const Item = [
-        "Site Touristiques",
-        "Circuits",
-        "Guides",
-        "Agences"
+    const items = [
+        { name: "Welcome", target: "welcome" },
+        { name: "Sites Touristiques", target: "sites" },
+        { name: "Circuits", target: "circuits" },
+        { name: "Guides", target: "guides"},
+        { name: "Apropos", target: "footer"},
     ]
-    
-    return(
-        <aside>
 
-            <nav>
-                {Item.map((index) =>
-                <button className=" cursor-pointer text-sm text-text-soft bg-none mx-3 px-2 hover:text-primary hover:font-bold transition" key={index}>{index}</button>
-                )}
-            </nav>
+    return (
+        <aside>
+        <nav>
+            {items.map((item) => (
+            <a
+                key={item.name}
+                href={`#${item.target}`}
+                className="cursor-pointer text-sm text-text-soft mx-3 px-2 hover:text-primary transition"
+            >
+                {item.name}
+            </a>
+            ))}
+        </nav>
         </aside>
     )
 }
 
-export default HeaderNav;
+export default HeaderNav

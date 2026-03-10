@@ -1,16 +1,20 @@
+import { Map } from "lucide-react"
+
 const HeaderLogo = () => {
-    return(
-        <div className="flex justify-center items-center gap-3">
-            <div className="bg-primary w-12 h-12 rounded-full flex items-center justify-center">
-                <p className="font-bold text-2xl text-white">FT</p>
-                
+    return (
+        <div className="flex items-center text-center gap-3 cursor-pointer">
+        
+            <div className="bg-primary w-8 h-8 rounded-full flex items-center justify-center shadow-md">
+                <Map className="w-6 h-6 text-white" />
             </div>
-            <h1 className="font-bold">
-                <span className="text-textDark text-xl">Faso</span>
-                <span className="text-primary text-xl">Tour</span>
-            </h1>
+
+            <h3 className="font-bold text-xx">
+                <span className="text-white">Faso</span>
+                <span className="text-primary">Tour</span>
+            </h3>
+
         </div>
     )
 }
 
-export default HeaderLogo;
+export default HeaderLogo

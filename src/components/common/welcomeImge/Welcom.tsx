@@ -1,12 +1,10 @@
-// ❌ import { url } from "inspector";  → À SUPPRIMER
-
 import bgImage from "../img/hero-burkina.jpg";
-import Circuit from "../Circuits/Circuit";
-import Sites from "../sites/SItes";
+
 import Statistique from "../utilitaire/Statistique";
 import Pays from "./Pays";
 import RechercheBarre from "./RechercheBarre";
 import WelcomeTitle from "./WelcomTitle";
+
 
 const Welcome = () => {
     return (
@@ -15,15 +13,14 @@ const Welcome = () => {
             style={{ backgroundImage: `url(${bgImage})` }}
             className="bg-cover bg-center h-screen"
         >
-            <Pays />
-            <WelcomeTitle />
-            <RechercheBarre />
-            <Statistique />
+            <div>
+                    <Pays />
+                    <WelcomeTitle />
+                    <RechercheBarre />
+                    <Statistique />
+            </div>
         </div>
-        <div>
-            <Sites />
-            <Circuit />
-        </div>
+        
     </div>
     );
 };

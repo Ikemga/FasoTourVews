@@ -1,4 +1,4 @@
-import { Bt } from "../ui/Bt";
+import {Bt2 } from "../../../ui/Bt";
 
 const GeneriqueHeader = ({title, label, text}) =>{
 
@@ -9,7 +9,7 @@ const GeneriqueHeader = ({title, label, text}) =>{
                 <h1 className="text-3xl font-bold text-black leading-tight">{label}</h1>
                 <p className="text-xl text-text-soft max-w-md">{text}</p>
             </div>
-            <Bt label="Voir plus" />
+            <Bt2 label="Voir plus" />
         </div>
     )
 }

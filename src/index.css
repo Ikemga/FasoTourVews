@@ -24,15 +24,6 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: var(--color-primary);
-}
-
 body {
   margin: 0;
   display: flex;
@@ -44,6 +35,10 @@ body {
 h1 {
   font-size: 3.2em;
   line-height: 1.1;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 /*
 button {
@@ -69,8 +64,5 @@ button:focus-visible {
   :root {
     color: #213547;
     background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
   }
 }
