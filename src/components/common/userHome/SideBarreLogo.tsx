@@ -11,4 +11,5 @@ const SideBarreLogo = ({userrole = "Invité"}) =>{
         </div>
     )
 }
+
 export default SideBarreLogo;

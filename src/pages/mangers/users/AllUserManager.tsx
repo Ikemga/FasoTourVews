@@ -1,59 +1,81 @@
-import UserTabe from "../../../components/common/ui/UserTable";
+import { useEffect, useState } from "react";
+import { getUsersByRecent, searchUsers } from "../../../service/UtilisateurService";
+import DataTable from "../../../components/common/ui/DataTable";
+import { utilisateursColumns } from "../../../components/common/ui/tableConfigs";
 
-const AllUserManager = () =>{
-    return(
-        <div>
-            <p className="text-4xl text-center font-bold text-primary">Liste de tous les User du SI</p>
-            <UserTabe
-  id={1}
-  utilisateurs="Sakal Sawadogo"
-  mail="sakal.sawadogo@gmail.com"
-  tel="+226 70 12 34 56"
-  role="Administrateur"
-  statut="Actif"
-  onDelete={() => handleDelete(1)}
-/>
+const AllUserManager = ({ search = "", actif }: { search?: string; actif?: boolean }) => {
+  const [users, setUsers]     = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError]     = useState(null);
 
-<UserTabe
-  id={2}
-  utilisateurs="Awa Traoré"
-  mail="awa.traore@gmail.com"
-  tel="+226 65 45 78 90"
-  role="Guide"
-  statut="Actif"
-  onDelete={() => handleDelete(2)}
-/>
+  const fetchUsers = async (searchVal: string, actifVal?: boolean) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response =
+        searchVal || actifVal !== undefined
+          ? await searchUsers(searchVal, actifVal)
+          : await getUsersByRecent();
+      setUsers(response.data);
+    } catch (err) {
+      setError("Impossible de charger les utilisateurs.");
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-<UserTabe
-  id={3}
-  utilisateurs="Issa Ouédraogo"
-  mail="issa.ouedraogo@gmail.com"
-  tel="+226 76 11 22 33"
-  role="Touriste"
-  statut="Inactif"
-  onDelete={() => handleDelete(3)}
-/>
+  useEffect(() => {
+    const timer = setTimeout(() => fetchUsers(search, actif), 400);
+    return () => clearTimeout(timer);
+  }, [search, actif]);
 
-<UserTabe
-  id={4}
-  utilisateurs="Mariam Kaboré"
-  mail="mariam.kabore@gmail.com"
-  tel="+226 71 98 76 54"
-  role="Gestionnaire"
-  statut="Actif"
-  onDelete={() => handleDelete(4)}
-/>
+  const handleDelete = async (row: any) => {         // ← reçoit toute la row
+    if (!confirm("Supprimer cet utilisateur ?")) return;
+    try {
+      setUsers((prev: any[]) => prev.filter((u) => u.id !== row.id));
+    } catch (err) {
+      console.error("Erreur lors de la suppression :", err);
+    }
+  };
 
-<UserTabe
-  id={5}
-  utilisateurs="Adama Zongo"
-  mail="adama.zongo@gmail.com"
-  tel="+226 64 55 44 33"
-  role="Guide"
-  statut="Suspendu"
-  onDelete={() => handleDelete(5)}
-/>
+  return (
+    <div className="p-6">
+      <p className="text-xl font-bold text-left mb-4">
+        Liste de tous les utilisateurs
+      </p>
+
+      {loading && (
+        <div className="flex items-center justify-center py-16">
+          <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+          <span className="ml-3 text-gray-400 text-sm">Chargement...</span>
         </div>
-    )
-}
+      )}
+
+      {error && (
+        <div className="text-center py-8 text-red-400 text-sm bg-red-50 rounded-xl border border-red-100">
+          {error}
+          <button
+            onClick={() => fetchUsers(search, actif)}
+            className="ml-3 underline text-red-500 hover:text-red-700"
+          >
+            Réessayer
+          </button>
+        </div>
+      )}
+
+      {!loading && !error && (
+        <DataTable
+          rows={users}
+          columns={utilisateursColumns}
+          onView={(row) => console.log("voir", row)}
+          onEdit={(row) => console.log("éditer", row)}
+          onDelete={handleDelete}
+          emptyText="Aucun utilisateur trouvé."
+        />
+      )}
+    </div>
+  );
+};
+
 export default AllUserManager;

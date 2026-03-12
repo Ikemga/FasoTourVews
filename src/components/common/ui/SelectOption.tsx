@@ -16,6 +16,7 @@ const SelectOption = ({ value, onChange }: Props) => {
         <div className="flex-1">
         <div className="relative">
             <button
+            type="button"
             onClick={() => setOpen(!open)}
             className="w-full flex items-center justify-between bg-stone-100 hover:bg-stone-200 transition-colors rounded-xl px-4 py-3 text-stone-800 text-sm font-medium focus:outline-none focus:ring-1 focus:ring-amber-600 "
             >
@@ -35,7 +36,8 @@ const SelectOption = ({ value, onChange }: Props) => {
                 {STATUTS.map((s) => (
                 <li key={s}>
                     <button
-                    onClick={() => {
+                        type="button"
+                        onClick={() => {
                         onChange(s);
                         setOpen(false);
                     }}

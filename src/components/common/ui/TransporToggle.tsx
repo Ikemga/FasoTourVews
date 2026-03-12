@@ -9,6 +9,7 @@ const TransportToggle = ({ value, onChange }: Props) => {
     return (
         <div className="flex-1">
         <button
+            type="button"
             onClick={() => onChange(!value)}
             className="flex items-center gap-3 group focus:outline-none"
             aria-pressed={value}

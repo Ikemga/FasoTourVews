@@ -1,143 +1,152 @@
-import {PlusCircle } from "lucide-react";
+import { PlusCircle } from "lucide-react";
 import { BouttonPopUp } from "../../../components/common/ui/Bt";
 import SpecifiqueRechercheBarre from "../../../components/common/ui/SpecifiqueRechercheBarre";
 import HeaderTitle from "../../../components/common/utilitaire/HeaderTitle";
-import CircuitsCard from "./CircuitsCard";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import AddCircuitModal from "../../../components/common/ui/AddCircuitModal";
+import { deleteCircuit, getCircuitsByDateDesc, searchCircuit } from "../../../service/CircuitService";
+import CircuitsCard from "./CircuitsCard";
+import CircuitDetail from "./circuitDetail/CircuitDetail";
 
-const Circuits = () =>{
+const Circuits = ({ onToggleSidebar }) => {
+    const [openModal, setOpenModal]         = useState(false);
+    const [circuits, setCircuits]           = useState([]);
+    const [sidebarOpen, setSidebarOpen]     = useState(false);
+    const [displayed, setDisplayed]         = useState([]);
+    const [success, setSuccess]             = useState(null);
+    const [selectedCircuit, setSelectedCircuit] = useState(null);
 
-    const [openModal, setOpenModal] = useState(false);
+    useEffect(() => {
+        fetchCircuits();
+    }, []);
 
-    return(
-        <div >
-            <HeaderTitle
-            title= "Gestion des circuits"
-            label= "Vue d'ensemble des circuits"
-            initiales= "AD"
-            onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}/>
-            
-            <div className="mx-5 py-5 flex justify-between items-center-safe gap-6">                
-                <h4 className="text-2xl font-bold">Liste des circuits</h4>
-                <SpecifiqueRechercheBarre />
-                <div>
-                    <BouttonPopUp 
-                        label="Nouveau circuit"
-                        icon={<PlusCircle size={18} />}
-                        onClick={() => setOpenModal(true)}
-                    />
-                </div>
-            </div>
-            <p className="mx-6 border border-b-taupe-50"></p>
+    const fetchCircuits = async () => {
+        try {
+        const response = await getCircuitsByDateDesc();
+        const data = response.data;
 
-            
-            <div >
-                <div className="mx-5 grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 items-center">
-                    <CircuitsCard
-                        image="https://images.unsplash.com/photo-1605540436563-5bca919ae766?w=600"
-                        title="Circuit Cascades & Pics de Sindou"
-                        description="Explorez les Cascades de Banfora, le lac de Tengrela et les majestueux pics de Sindou dans une immersion naturelle exceptionnelle."
-                        note={4.8}
-                        duree="3"
-                        place= "5"
-                        personnes="2-10"
-                        sites="5"
-                        prix="150 000"
-                        onDelete ={() => handleDelete(1)}
-                    />
+        const liste = Array.isArray(data)
+            ? data
+            : data.content ?? data.data ?? data.circuits ?? [];
 
-                    <CircuitsCard
-                        image="https://images.unsplash.com/photo-1577717903315-1691ae25ab3f?w=600"
-                        title="Ouagadougou & Patrimoine Mossi"
-                        description="Plongez dans l’histoire du royaume Mossi, visitez le musée national et découvrez l’artisanat local."
-                        note={4.6}
-                        duree="2"
-                        place = "3"
-                        personnes="4-15 "
-                        sites="4 "
-                        prix="95 000"
-                    />
+        liste.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
-                    <CircuitsCard
-                        image="https://images.unsplash.com/photo-1577717903315-1691ae25ab3f?w=600"
-                        title="Ouagadougou & Patrimoine Mossi"
-                        description="Plongez dans l'histoire du royaume Mossi, visitez le musée national et découvrez l'artisanat local."
-                        note={4.6}
-                        duree="2"
-                        place = "3"
-                        personnes="4-15"
-                        sites="4"
-                        prix="95 000"
-                        />
+        setCircuits(liste);
+        setDisplayed(liste);
+        } catch (error) {
+        console.error("Erreur chargement circuits", error);
+        setCircuits([]);
+        setDisplayed([]);
+        }
+    };
 
-                    <CircuitsCard
-                        image="https://images.unsplash.com/photo-1605540436563-5bca919ae766?w=600"
-                        title="Cascades & Pics de Sindou"
-                        description="Explorez les Cascades de Banfora, le lac de Tengrela et les majestueux pics de Sindou dans une immersion naturelle exceptionnelle."
-                        note={4.8}
-                        duree="3"
-                        place = "3"
-                        personnes="2-10"
-                        sites="5"
-                        prix="150 000"
-                        />
+    const handleSuccess = () => {
+        setSuccess("Circuit créé avec succès !");
+        fetchCircuits();
+        setTimeout(() => setSuccess(null), 3000);
+    };
 
-                        <CircuitsCard
-                        image="https://images.unsplash.com/photo-1516026672322-bc52d61a55d5?w=600"
-                        title="Sahel & Dunes de Gorom-Gorom"
-                        description="Partez à la rencontre des Touaregs au marché de Gorom-Gorom et vivez une nuit sous les étoiles du Sahel."
-                        note={4.9}
-                        duree="4"
-                        place = "3"
-                        personnes="2-8"
-                        sites="4"
-                        prix="220 000"
-                        />
-                    <CircuitsCard
-                    image="https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?w=600"
-                    title="Réserve de Nazinga & Faune Sauvage"
-                    description="Observez éléphants, hippos et antilopes dans la réserve de Nazinga, l'un des parcs les plus riches d'Afrique de l'Ouest."
-                    note={4.7}
-                    duree="2 "
-                    place = "3"
-                    personnes="2-12"
-                    sites="3 sites"
-                    prix="95 000"
-                    />
-                    <CircuitsCard
-                    image="https://images.unsplash.com/photo-1528360983277-13d401cdc186?w=600"
-                    title="Pays Lobi & Art Sacré de Gaoua"
-                    description="Plongez dans la culture Lobi à Gaoua, visitez le musée Poni et découvrez les rites ancestraux de cette région mystérieuse."
-                    note={4.6}
-                    duree="2"
-                    place = "3"
-                    personnes="2-8"
-                    sites="4 sites"
-                    prix="110 000"
-                    />
-
-
-                <CircuitsCard
-                    image="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=600"
-                    title="Aventure Sahélienne - Dori & Gorom"
-                    description="Partez à la découverte du Sahel burkinabè, des dunes de sable et des traditions peules authentiques."
-                    note={4.7}
-                    duree="5"
-                    place = "3"
-                    personnes="4-8"
-                    sites="6 sites"
-                    prix="210 000"
-                />
+    const handleSearch = (results) => {
+        setDisplayed(results ?? circuits); 
+    };
     
-                </div>
-            </div>
-            <AddCircuitModal
-                open={openModal}
-                onClose={() => setOpenModal(false)}
-                />
+
+    const handleDelete = useCallback(async (id) => {
+        console.log("🗑️ ID reçu :", id); // ← ajoutez cette ligne
+        const ok = window.confirm("Confirmer la suppression ?");
+        if (!ok) return;
+
+        try {
+            await deleteCircuit(id);
+            setCircuits(prev => {
+                const updated = prev.filter(c => c.id !== id);
+                setDisplayed(d => d.filter(c => c.id !== id));
+                return updated;
+            });
+            setSelectedCircuit(null);
+        } catch (error) {
+            console.error("Erreur suppression", error);
+        }
+    }, []);
+
+    if (selectedCircuit) {
+    return (
+        <CircuitDetail
+        circuit={selectedCircuit}
+        onBack={() => setSelectedCircuit(null)}
+        onDelete={() => handleDelete(selectedCircuit.id)}
+        onToggleSidebar={onToggleSidebar}
+        onRefresh={fetchCircuits}
+      />
+    );
+  }
+
+  return (
+    <div>
+      <HeaderTitle
+        title="Gestion des circuits"
+        label="Vue d'ensemble des circuits"
+        initiales="AD"
+        onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
+      />
+
+      {success && (
+        <div className="mx-5 mt-4 bg-green-50 text-green-600 text-sm px-4 py-3 rounded-xl border border-green-200 flex items-center gap-2">
+          <span>✓</span> {success}
         </div>
-    )
-}
+      )}
+
+    <div className="mx-5 py-5 flex justify-between items-center gap-6">
+        <h4 className="text-2xl font-bold">Liste des circuits</h4>
+
+        {/* Barre de recherche — déclenche handleSearch à chaque frappe */}
+        <SpecifiqueRechercheBarre
+        searchFn={searchCircuit}
+        onResults={handleSearch} 
+        placeholder="Rechercher un circuit ...."
+
+        />
+
+        <BouttonPopUp
+            label="Nouveau circuit"
+            icon={<PlusCircle size={18} />}
+            onClick={() => setOpenModal(true)}
+        />
+    </div>
+
+
+        <div className="mx-5 grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {displayed.length === 0 ? (
+            <p className="text-gray-400 italic col-span-3 text-center py-10">
+                Aucun circuit disponible.
+            </p>
+            ) : (
+            displayed.map((circuit) => (
+                <CircuitsCard
+                key={circuit.id}
+                image={circuit.image}
+                circuitName={circuit.circuitName}
+                description={circuit.description}
+                duree={circuit.duree}
+                nombreRestant={circuit.nombreRestant}
+                nombreExact={circuit.nombreExact}
+                prixIndividuel={circuit.prixIndividuel}
+                sites={circuit.sites}
+
+                onDelete={() => handleDelete(circuit.id)}
+                onDetail={() => setSelectedCircuit(circuit)}
+                />
+            ))
+            )}
+        </div>
+
+        <AddCircuitModal
+            open={openModal}
+            onClose={() => setOpenModal(false)}
+            onSuccess={handleSuccess}
+        />
+        </div>
+    );
+};
 
 export default Circuits;

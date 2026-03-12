@@ -1,35 +1,27 @@
-import { Star, MapPin, Clock, CreditCard, Trash2, Users } from 'lucide-react'; 
+import {MapPin,CreditCard, Trash2, Users, CalendarDaysIcon, ChevronRight } from 'lucide-react'; 
 import { Boutton } from '../../../components/common/ui/Bt';
-import { useNavigate } from 'react-router-dom';
 
 
-const CircuitsCard = ({ image, title, description, note, duree, place, personnes, sites, prix, onDelete}) => {
+const CircuitsCard = ({ image, circuitName, description, duree, nombreRestant, prixIndividuel,nombreExact,sites, onDelete, onDetail}) => {
 
-        const navigate = useNavigate();
 
+        
         const handleDelete = (e) => {
             e.stopPropagation();
             onDelete();
         };
 
-
-        const handleClick = () => {
-            navigate(`/circuits`);
-        };
+        //nombre de site
+        const nbSites = Array.isArray(sites) ? sites.length : (sites ?? 0);
 
     return(
-        <div onClick={handleClick}
-        className="group text-left m-1 my-10 cursor-pointer w-full overflow-hidden bg-white shadow-lg rounded-3xl border border-gray-100 transition-all duration-300 hover:pb-3 hover:shadow-2xl">
+        <div 
+        className="text-left m-1 my-10 cursor-pointer w-full overflow-hidden bg-white shadow-lg rounded-3xl border border-gray-100 transition-all duration-300 hover:shadow-2xl">
             <div className="relative h-64 w-full">
                 <img 
                 src={image} 
-                alt={title}
+                alt=""
                 className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"/>
-
-                <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1.5">
-                    <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
-                    <span className="font-bold text-sm text-gray-800">{note}</span>
-                </div>
 
                 {/* Bouton supprimer */}
                 <button
@@ -45,7 +37,7 @@ const CircuitsCard = ({ image, title, description, note, duree, place, personnes
                 <div className="">
                     <div>
                         <h4 className="text-2xl font-bold text-gray-900">
-                        {title}
+                        {circuitName}
                         </h4>
                         <p className="py-2">
                             {description}
@@ -54,24 +46,20 @@ const CircuitsCard = ({ image, title, description, note, duree, place, personnes
                     
                     <div className='flex justify-start items-start py-2'>
                         <span className="flex items-center gap-1.5">
-                            <Clock className="w-4 h-4 text-[#c1440e]" />
+                            <CalendarDaysIcon className="w-4 h-4 text-[#c1440e]" />
                             {duree} jours
                         </span>
 
                         <span className="flex items-center gap-1.5 mx-4">
-                            <MapPin className="w-4 h-4 text-[#c1440e]" />
-                            {place} places restant
-                        </span>
-
-                        <span className="flex items-center gap-1.5 mx-4">
                             <Users className="w-4 h-4 text-[#c1440e]" />
-                            {personnes} pers
+                            {nombreRestant} places restant / {nombreExact}
                         </span>
-
-                        <span className="flex items-center gap-1.5">
+                        
+                        <span className="flex items-center gap-1.5 text-sm">
                             <MapPin className="w-4 h-4 text-[#c1440e]" />
-                            {sites} Sites
+                            {nbSites} site{nbSites > 1 ? "s" : ""} 
                         </span>
+                        
                     </div>
                 </div>
                 
@@ -79,8 +67,22 @@ const CircuitsCard = ({ image, title, description, note, duree, place, personnes
 
                 <div className="flex justify-between items-start">
                     <div>
-                        <p className="text-3xl font-bold text-[#c1440e]">{prix} FCFA</p>
+                        <p className="text-2xl font-bold text-[#c1440e]">{prixIndividuel} FCFA</p>
                         <p > par personne</p>
+                    </div>
+
+                </div>
+                <div className="flex justify-between items-start">
+                    <div>
+                        <button
+                            type="button"
+                            onClick={onDetail}
+                            className="flex items-center gap-2 border border-primary text-primary px-6 py-3 rounded-xl font-bold 
+                                        hover:bg-amber-700 hover:text-white transition-all duration-300 ease-in-out cursor-pointer group"
+                            >
+                            <span>Détail</span>
+                            <ChevronRight className="w-5 h-5 text-primary transition-transform duration-300 group-hover:translate-x-1 group-hover:text-white" />
+                        </button>
                     </div>
                     <div>
                         <Boutton

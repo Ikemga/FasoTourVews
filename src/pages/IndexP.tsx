@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 
 import { useState } from "react";
 import SideBarre from "../components/common/userHome/SideBarre";
@@ -9,9 +8,10 @@ import Utiliisateurs from "./mangers/users/Utiliisateurs";
 
 
 const IndexP = () => {
+
     const [page, setPage] = useState("Tableau de bord");
 
-  return (
+    return (
         <div className="w-screen flex h-screen overflow-hidden bg-[#faf7f4]">
             
                 <div className="fixed top-0 left-0 h-screen z-30">

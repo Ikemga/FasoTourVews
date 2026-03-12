@@ -4,8 +4,8 @@ import Index from './pages/Index'
 import Login from "./pages/Login"
 import Register from "./pages/Register"
 import IndexP from "./pages/IndexP"
-import CircuitDetail from "./pages/mangers/circuits/CircuitDetail"
-import SitesDetail from "./pages/mangers/sites/SitesDetail"
+import CircuitDetail from "./pages/mangers/circuits/circuitDetail/CircuitDetail"
+import SitesDetail from "./pages/mangers/sites/siteDetail/SitesDetail"
 
 function App() {
 
@@ -20,8 +20,8 @@ function App() {
 
 
 
-        <Route path="/circuits" element={<CircuitDetail />} />
-        <Route path="/sites" element={<SitesDetail />} />
+        <Route path="/detailcircuits" element={<CircuitDetail />} />
+        <Route path="/detailsite" element={<SitesDetail />} />
 
         
 

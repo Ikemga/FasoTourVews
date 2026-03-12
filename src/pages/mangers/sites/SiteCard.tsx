@@ -1,30 +1,24 @@
-import { Star, MapPin, Trash2, Hourglass, Banknote } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Star, MapPin, Trash2, Hourglass, Banknote, ChevronRight } from 'lucide-react';
 
 
-const SiteCard = ({ imageSrc, title, note, description,region, categorie,horaire,tarif, onDelete }) => {
-
-    const navigate = useNavigate();
+const SiteCard = ({ imageSrc, title, note, description,region, categorie,horaire,tarif, onDelete,onDetail }) => {
 
         const handleDelete = (e) => {
             e.stopPropagation();
             onDelete();
         };
-    const handleClick = () => {
-            navigate(`/sites`);
-        };
+
 
   return (
-    <div 
-    onClick={handleClick} className="group m-1 my-10 cursor-pointer w-full overflow-hidden bg-white shadow-lg rounded-3xl border border-gray-100 transition-all duration-300 hover:shadow-2xl">
+    <div className="group m-1 my-10 cursor-pointer w-full overflow-hidden bg-white shadow-lg rounded-3xl border border-gray-100 transition-all duration-300 hover:shadow-2xl">
       <div className="relative h-64 w-full overflow-hidden">
         <img
           src={imageSrc}
           alt=""
           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
-        <div className="absolute top-4 left-4 bg-primary backdrop-blur-sm px-4 py-1 rounded-full shadow-md">
-          <span className="text-sm font-bold tracking-widest text-white ">{categorie}</span>
+        <div className="absolute top-4 left-4   px-4 py-1 rounded-full ">
+          <span className="text-sm font-bold tracking-widest m-2 text-white ">{categorie}</span>
         </div>
 
         {/* Bouton supprimer */}
@@ -55,11 +49,20 @@ const SiteCard = ({ imageSrc, title, note, description,region, categorie,horaire
           <p className="text-gray-500 text-left">{description}</p>
         </div>
 
-        <div>
+        <div  className="flex justify-between text-center items-center gap-1.5 py-2">
           <span className="flex justify-start text-center items-center gap-1.5 py-2">
             <Hourglass className="w-4 h-4 text-[#c1440e]" />
               <span>{horaire} </span>
             </span>
+            <button
+              type="button"
+              onClick={onDetail}
+              className="flex items-center gap-2 border border-primary text-primary px-6 py-3 rounded-xl font-bold 
+                        hover:bg-amber-700 hover:text-white transition-all duration-300 ease-in-out cursor-pointer group"
+            >
+              <span>Détail</span>
+              <ChevronRight className="w-5 h-5 text-primary transition-transform duration-300 group-hover:translate-x-1 group-hover:text-white" />
+            </button>
         </div>
         <p className="border mx-2 "></p>
         <div className="flex justify-between items-center gap-4 p-4">

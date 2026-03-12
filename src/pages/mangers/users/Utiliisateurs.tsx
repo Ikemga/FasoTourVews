@@ -1,4 +1,3 @@
-import SpecifiqueRechercheBarre from "../../../components/common/ui/SpecifiqueRechercheBarre";
 import HeaderTitle from "../../../components/common/utilitaire/HeaderTitle";
 import UserStatistique from "../../../components/common/utilitaire/UserStatistique";
 import UserTabGroup from "../../../components/common/ui/UserTabGroup";
@@ -7,6 +6,7 @@ import TouristeManager from "./TouristeManager";
 import GuideManager from "./GuideManager";
 import AgenceManager from "./AgenceManager";
 import AllUserManager from "./AllUserManager";
+import RechercheBarre from "./RechercheBarre";
 
 
     const tabs = [
@@ -19,6 +19,7 @@ import AllUserManager from "./AllUserManager";
 const Utiliisateurs = () =>{
 
     const [activeTab, setActiveTab] = useState(0);
+    const [search, setSearch]       = useState("");
 
     return(
         <div className="flex flex-col w-full">
@@ -32,8 +33,12 @@ const Utiliisateurs = () =>{
             <main className="flex flex-col flex-1">
                 <UserStatistique />
                 <div className="mx-5 py-5 flex justify-between items-center-safe gap-6">
-                    <SpecifiqueRechercheBarre />
+                    <RechercheBarre
+                        value={search}
+                        onChange={(val) => setSearch(val)}      // ← recherche texte
+                    />
                 </div>
+
                 <div className="w-full">
                     <div className="flex justify-start items-start mx-4">
                         <UserTabGroup

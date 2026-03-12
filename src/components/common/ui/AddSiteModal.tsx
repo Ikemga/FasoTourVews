@@ -4,13 +4,22 @@ import {  InputHeure, InputText, Label, LabelRequiert, PrixInput, Textarea } fro
 import ImageUploadMultiple from "./ImageUploadMultiple";
 import VideoUploadMultiple from "./VideoUploadMultiple";
 import FileUploadMultiple from "./FileUploadMultiple";
-import { useState } from "react";
-import Api from "../../../service/api/Api";
+import { useEffect, useState } from "react";
+import CategorieSelector from "./CategorieSelector";
+import { postSites } from "../../../service/SiteService";
 
-const AddSiteModal = ({ open, onClose }) => {
+const AddSiteModal = ({ open, onClose, onSuccess }) => {
 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [selectedCats, setSelectedCats] = useState([]); 
+
+    useEffect (() => {
+        if (!error) return;
+        
+        const timer = setTimeout(() => setError(null), 3000);
+        return () => clearTimeout(timer); // nettoyage si error change avant la fin
+        }, [error]);
 
     // Etat des fichiers
     const [photos, setPhotos] = useState([]);
@@ -31,19 +40,18 @@ const AddSiteModal = ({ open, onClose }) => {
             nom:            formData.get("nom"),
             region:         formData.get("region"),
             description:    formData.get("description"),
-            geolocalisation: formData.get("geo"),
-            note:           formData.get("note"),
-            categorie:      formData.get("categorie"),
-            horaires:       formData.get("time"),
+            localisation:   formData.get("localisation"),
+            noteMoyenne:    formData.get("noteMoyenne"),
+            categorieIds:   selectedCats.map(c => c.id),
+            horaire:        formData.get("horaire"),
             tarif:          formData.get("prix"),
-            statut:         formData.get("status"),
+            statut:         formData.get("statut"),
         };
 
         try {
 
-            const response = await Api.post("/sites", payload);
-
-            console.log("Site créé :", response.data);
+            await postSites(payload);
+            onSuccess?.();
             onClose();
             } catch (err) {
             console.error("Erreur création site :", err);
@@ -79,7 +87,7 @@ const AddSiteModal = ({ open, onClose }) => {
                     <form onSubmit={handleSubmit} className="space-y-3 mt-3 text-gray-500">
                         {/* Message d'erreur */}
                             {error && (
-                                <div className="bg-red-50 text-red-500 text-sm px-4 py-2 rounded-xl border border-red-200">
+                                <div className=" text-red-500 text-sm  ">
                                 {error}
                                 </div>
                             )}
@@ -128,15 +136,17 @@ const AddSiteModal = ({ open, onClose }) => {
                             />
                         </div>
 
-                        {/* Géolocalisation + Note + Catégorie */}
+                            {/* Géolocalisation + Note + Catégorie */}
                         <div className="flex gap-4">
                             <div className="flex-1">
                                 <div className="items-start flex">
-                                    <LabelRequiert label="Géolocalisation" requiert="*" />
+                                    <LabelRequiert 
+                                    label="Géolocalisation" 
+                                    requiert="*" />
                                 </div>
                                 <InputText
                                     type="text"
-                                    name="geo"
+                                    name="localisation"
                                     placeholder="1.5456, 1.4354"
                                     className="mt-1"
                                 />
@@ -149,7 +159,7 @@ const AddSiteModal = ({ open, onClose }) => {
                                 </div>
                                 <InputText
                                     type="text"
-                                    name="note"
+                                    name="noteMoyenne"
                                     placeholder="4.6"
                                     className="mt-1"
                                 />
@@ -158,12 +168,10 @@ const AddSiteModal = ({ open, onClose }) => {
                                 <div className="items-start flex">
                                     <LabelRequiert label="Catégorie" requiert="*" />
                                 </div>
-                                
-                                <InputText
-                                    type="text"
-                                    name="categorie"
-                                    placeholder="Ex: Historique"
-                                    className="mt-1"
+
+                                <CategorieSelector
+                                    selected={selectedCats}
+                                    onChange={setSelectedCats}
                                 />
                             </div>
                         </div>
@@ -178,7 +186,7 @@ const AddSiteModal = ({ open, onClose }) => {
                                 <div className="relative w-full">
                                 <InputHeure
                                     type="time"
-                                    name="time"
+                                    name="horaire"
                                     placeholder="17:00"
                                 />
                                 </div>
@@ -204,7 +212,7 @@ const AddSiteModal = ({ open, onClose }) => {
                                 </div>
                                 <InputText
                                     type="text"
-                                    name="status"
+                                    name="statut"
                                     placeholder="Actif"
                                     className="mt-1"
                                 />

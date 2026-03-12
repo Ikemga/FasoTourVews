@@ -9,6 +9,10 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
-
+  build: {
+        sourcemap: false, // ✅ désactive en production
+    },
+    css: {
+        devSourcemap: false, // ✅ désactive en dev
+    },
 })
-

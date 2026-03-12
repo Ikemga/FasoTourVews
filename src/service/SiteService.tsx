@@ -26,14 +26,24 @@ export const getSitesByPage = (page = 0, size = 10) => {
     });
 };
 
+export const getSitesAlphabetical = () => {
+    return Api.get("/sites/alphabetical");
+};
+
+//Search
+
+export const searchSites = (query) => {
+    return Api.get(`/sites/search?q=${query}`);
+};
+
 // POST
 export const postSites = (site) => {
     return Api.post("/sites", site);
 };
 
 // PUT
-export const putSites = (site) => {
-    return Api.put(`/sites/${site.id}`, site);
+export const putSites = (id,site) => {
+    return Api.put(`/sites/${id}`, site);
 };
 
 // DELETE
