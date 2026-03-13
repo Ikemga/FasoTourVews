@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import CircuitForm from "../../../pages/mangers/circuits/CircuitForm";
 
 
-const AddCircuitModal = ({ open, onClose }) => {
+const AddCircuitModal = ({ open, onClose, onSuccess }) => {
     if (!open) return null;
 
     return (
@@ -26,8 +26,9 @@ const AddCircuitModal = ({ open, onClose }) => {
 
                     {/* Corps scrollable */}
                     <div className="overflow-y-auto flex-1 px-6 py-4 space-y-4">
-                        <CircuitForm onClose={onClose} 
-                        onSuccess={() => fetchCircuits()}
+                        <CircuitForm 
+                        onClose={onClose} 
+                        onSuccess={onSuccess}
                         />
                     </div>
 

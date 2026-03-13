@@ -1,8 +1,8 @@
-import {MapPin,CreditCard, Trash2, Users, CalendarDaysIcon, ChevronRight } from 'lucide-react'; 
+import {MapPin,CreditCard, Trash2, Users, CalendarDaysIcon, ChevronRight, User2Icon } from 'lucide-react'; 
 import { Boutton } from '../../../components/common/ui/Bt';
 
 
-const CircuitsCard = ({ image, circuitName, description, duree, nombreRestant, prixIndividuel,nombreExact,sites, onDelete, onDetail}) => {
+const CircuitsCard = ({ image, circuitName, description, duree, nombreRestant, prixIndividuel,nombreExact,sites, guides, onDelete, onDetail}) => {
 
 
         
@@ -13,6 +13,7 @@ const CircuitsCard = ({ image, circuitName, description, duree, nombreRestant, p
 
         //nombre de site
         const nbSites = Array.isArray(sites) ? sites.length : (sites ?? 0);
+        const nguides = Array.isArray(guides) ? guides.length : (guides ?? 0);
 
     return(
         <div 
@@ -59,7 +60,11 @@ const CircuitsCard = ({ image, circuitName, description, duree, nombreRestant, p
                             <MapPin className="w-4 h-4 text-[#c1440e]" />
                             {nbSites} site{nbSites > 1 ? "s" : ""} 
                         </span>
-                        
+
+                        <span className="flex items-center gap-1.5 text-sm">
+                            <User2Icon className="w-4 h-4 text-[#c1440e]" />
+                            {nguides} guide{nguides > 1 ? "s" : ""} 
+                        </span>
                     </div>
                 </div>
                 

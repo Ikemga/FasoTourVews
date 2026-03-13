@@ -13,6 +13,7 @@ const EditCircuitModal = ({ open, onClose, circuit, onSuccess }) => {
         transition={{ duration: 0.6, ease: "easeOut" }}
         className="relative w-full max-w-2xl rounded-2xl shadow-2xl bg-white border border-white/20"
       >
+        
         <div className="bg-white w-full max-w-2xl rounded-2xl shadow-xl flex flex-col max-h-[90vh]">
 
           {/* Header */}

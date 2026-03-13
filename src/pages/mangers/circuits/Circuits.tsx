@@ -1,4 +1,4 @@
-import { PlusCircle } from "lucide-react";
+import { CheckCircle, PlusCircle } from "lucide-react";
 import { BouttonPopUp } from "../../../components/common/ui/Bt";
 import SpecifiqueRechercheBarre from "../../../components/common/ui/SpecifiqueRechercheBarre";
 import HeaderTitle from "../../../components/common/utilitaire/HeaderTitle";
@@ -33,6 +33,11 @@ const Circuits = ({ onToggleSidebar }) => {
 
         setCircuits(liste);
         setDisplayed(liste);
+            // Detail refres
+        setSelectedCircuit(prev =>
+            prev ? liste.find(c => c.id === prev.id) ?? prev : null
+        );
+
         } catch (error) {
         console.error("Erreur chargement circuits", error);
         setCircuits([]);
@@ -91,10 +96,11 @@ const Circuits = ({ onToggleSidebar }) => {
       />
 
       {success && (
-        <div className="mx-5 mt-4 bg-green-50 text-green-600 text-sm px-4 py-3 rounded-xl border border-green-200 flex items-center gap-2">
-          <span>✓</span> {success}
-        </div>
-      )}
+            <div className="fixed top-5 right-5 z-[9999] flex items-center gap-3 bg-white border border-green-200 text-green-600 text-sm px-5 py-3 rounded-2xl shadow-lg transition-all duration-300">
+                <CheckCircle size={18} className="shrink-0" />
+                <span>{success}</span>
+            </div>
+        )}
 
     <div className="mx-5 py-5 flex justify-between items-center gap-6">
         <h4 className="text-2xl font-bold">Liste des circuits</h4>
@@ -114,8 +120,7 @@ const Circuits = ({ onToggleSidebar }) => {
         />
     </div>
 
-
-        <div className="mx-5 grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="mx-5 grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {displayed.length === 0 ? (
             <p className="text-gray-400 italic col-span-3 text-center py-10">
                 Aucun circuit disponible.
@@ -132,6 +137,7 @@ const Circuits = ({ onToggleSidebar }) => {
                 nombreExact={circuit.nombreExact}
                 prixIndividuel={circuit.prixIndividuel}
                 sites={circuit.sites}
+                guides={circuit.guides}
 
                 onDelete={() => handleDelete(circuit.id)}
                 onDetail={() => setSelectedCircuit(circuit)}
