@@ -1,10 +1,16 @@
 import { Trash2 } from "lucide-react";
 import BadgeCircuit from "./BadgeCircuit";
 
+const getImageUrl = (image) => {
+    if (!image) return "/placeholder.jpg";
+    return `http://localhost:8080${image.split('/').map(segment => encodeURIComponent(segment)).join('/')}`;
+};
 const CircuitHero = ({ circuit, onDelete }) => (
     <>
         <div className="relative h-80 w-full">
-        <img src={circuit.image} alt="" className="h-full w-full object-cover" />
+        <img 
+        src={getImageUrl(circuit.image)} 
+        alt="" className="h-full w-full object-cover" />
         <button
             onClick={onDelete}
             className="absolute top-4 right-4 bg-white/95 backdrop-blur-sm p-2 rounded-full shadow-lg text-red-500 hover:bg-red-500 hover:text-white transition-all duration-200"

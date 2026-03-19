@@ -1,8 +1,7 @@
-import {MapPin,CreditCard, Trash2, Users, CalendarDaysIcon, ChevronRight, User2Icon } from 'lucide-react'; 
-import { Boutton } from '../../../components/common/ui/Bt';
+import {MapPin, Trash2, Users, CalendarDaysIcon, ChevronRight, User2Icon } from 'lucide-react'; 
 
 
-const CircuitsCard = ({ image, circuitName, description, duree, nombreRestant, prixIndividuel,nombreExact,sites, guides, onDelete, onDetail}) => {
+const CircuitsCard = ({ image, circuitName, description, duree, nombreRestant, prixIndividuel,nombreExact,sites, guide, onDelete, onDetail, onReserve}) => {
 
 
         
@@ -10,17 +9,21 @@ const CircuitsCard = ({ image, circuitName, description, duree, nombreRestant, p
             e.stopPropagation();
             onDelete();
         };
+        const getImageUrl = (image) => {
+            if (!image) return "/placeholder.jpg";
+            return `http://localhost:8080${image.split('/').map(segment => encodeURIComponent(segment)).join('/')}`;
+        };
 
         //nombre de site
         const nbSites = Array.isArray(sites) ? sites.length : (sites ?? 0);
-        const nguides = Array.isArray(guides) ? guides.length : (guides ?? 0);
+        const nguides = Array.isArray(guide) ? guide.length : (guide ?? 0);
 
     return(
         <div 
         className="text-left m-1 my-10 cursor-pointer w-full overflow-hidden bg-white shadow-lg rounded-3xl border border-gray-100 transition-all duration-300 hover:shadow-2xl">
             <div className="relative h-64 w-full">
                 <img 
-                src={image} 
+                src={getImageUrl(image)} 
                 alt=""
                 className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"/>
 
@@ -60,11 +63,6 @@ const CircuitsCard = ({ image, circuitName, description, duree, nombreRestant, p
                             <MapPin className="w-4 h-4 text-[#c1440e]" />
                             {nbSites} site{nbSites > 1 ? "s" : ""} 
                         </span>
-
-                        <span className="flex items-center gap-1.5 text-sm">
-                            <User2Icon className="w-4 h-4 text-[#c1440e]" />
-                            {nguides} guide{nguides > 1 ? "s" : ""} 
-                        </span>
                     </div>
                 </div>
                 
@@ -90,9 +88,15 @@ const CircuitsCard = ({ image, circuitName, description, duree, nombreRestant, p
                         </button>
                     </div>
                     <div>
-                        <Boutton
-                        label="Réserver"
-                        icon = {<CreditCard size={18} />}/>
+                        <button
+                            type="button"
+                            onClick={onReserve}
+                            className="flex items-center gap-2 border border-primary text-primary px-6 py-3 rounded-xl font-bold 
+                            hover:bg-amber-700 hover:text-white transition-all duration-300 ease-in-out cursor-pointer group"
+                            >
+                            <span>Réserver</span>
+                            <ChevronRight className="w-5 h-5 text-primary transition-transform duration-300 group-hover:translate-x-1 group-hover:text-white" />
+                        </button>
                     </div>
                 </div>
             </div>

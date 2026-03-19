@@ -35,7 +35,7 @@ const Utiliisateurs = () =>{
                 <div className="mx-5 py-5 flex justify-between items-center-safe gap-6">
                     <RechercheBarre
                         value={search}
-                        onChange={(val) => setSearch(val)}      // ← recherche texte
+                        onChange={(val) => setSearch(val)}
                     />
                 </div>
 
@@ -49,6 +49,7 @@ const Utiliisateurs = () =>{
                     </div>
                     
                     {/* Afficher du contenu selon l'onglet actif */}
+                    
                     {activeTab === 0 && <AllUserManager/> }
                     {activeTab === 1 && <TouristeManager />}
                     {activeTab === 2 && <GuideManager />}

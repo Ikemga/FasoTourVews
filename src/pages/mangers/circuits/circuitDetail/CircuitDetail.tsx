@@ -11,7 +11,7 @@ import EditCircuitModal from "../../../../components/common/ui/EditCircuitModal"
 
 const Divider = () => <div className="h-px bg-gray-100 mb-6" />;
 
-const CircuitDetail = ({ circuit, onBack, onDelete,onRefresh, onToggleSidebar }) => {
+const CircuitDetail = ({ circuit, onBack, onDelete,onRefresh, onToggleSidebar, onReserve }) => {
   const [editOpen, setEditOpen] = useState(false);
 
   if (!circuit) return null;
@@ -47,27 +47,31 @@ const CircuitDetail = ({ circuit, onBack, onDelete,onRefresh, onToggleSidebar })
             <Divider />
             <CircuitDates circuit={circuit} />
             <Divider />
-            <CircuitSites  sites={circuit.sites} />
-            <CircuitGuides guides={circuit.guides} />
+            <div>
+              <CircuitSites  sites={circuit.sites} />
+            </div>
+            <CircuitGuides guide={circuit.guide} />
             <Divider />
 
-            <CircuitFooter 
+            <CircuitFooter
               circuit={circuit}
               onDelete={handleDelete}
-              onEdit={() => setEditOpen(true)} />
-
-            <EditCircuitModal
-              open={editOpen}
-              onClose={() => setEditOpen(false)}
-              circuit={circuit}
-              onSuccess={() => {
-                setEditOpen(false);
-                onRefresh?.();
-              }}
-            />
+              onEdit={() => setEditOpen(true)} 
+              onReserve={onReserve}/>
+            
           </div>
         </div>
       </div>
+    
+        <EditCircuitModal
+          open={editOpen}
+          onClose={() => setEditOpen(false)}
+          circuit={circuit}
+          onSuccess={() => {
+          setEditOpen(false);
+          onRefresh?.();
+          }}
+        />
     </div>
   );
 };

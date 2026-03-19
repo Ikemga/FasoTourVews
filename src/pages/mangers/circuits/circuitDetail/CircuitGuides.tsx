@@ -1,7 +1,7 @@
 import { Info } from "lucide-react";
 
-const CircuitGuides = ({ guides = [] }) => {
-  if (!guides.length) return null;
+const CircuitGuides = ({ guide = [] }) => {
+  if (!guide.length) return null;
 
   return (
     <div className="mb-6">
@@ -10,7 +10,7 @@ const CircuitGuides = ({ guides = [] }) => {
         Guides
       </h3>
       <div className="flex flex-wrap gap-2">
-        {guides.map((guide, i) => (
+        {guide.map((guide, i) => (
           <span key={i} className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-full text-sm font-medium">
             {guide.nomComplet ?? guide}
           </span>

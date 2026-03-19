@@ -12,6 +12,7 @@ const SiteCard = ({ imageSrc, title, note, description,region, categorie,horaire
   return (
     <div className="group m-1 my-10 cursor-pointer w-full overflow-hidden bg-white shadow-lg rounded-3xl border border-gray-100 transition-all duration-300 hover:shadow-2xl">
       <div className="relative h-64 w-full overflow-hidden">
+        
         <img
           src={imageSrc}
           alt=""

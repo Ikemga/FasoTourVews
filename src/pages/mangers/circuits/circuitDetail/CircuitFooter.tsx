@@ -1,6 +1,6 @@
-import { Banknote, Trash2, CreditCard, Pencil } from "lucide-react";
+import { Banknote, Trash2, CreditCard, Pencil, ChevronRight } from "lucide-react";
 
-const CircuitFooter = ({ circuit, onDelete, onEdit }) => (
+const CircuitFooter = ({ circuit, onDelete, onEdit, onReserve }) => (
   <div className="flex items-center justify-between flex-wrap gap-4">
     <div>
       <p className="text-sm text-gray-400">Prix par personne</p>
@@ -25,10 +25,15 @@ const CircuitFooter = ({ circuit, onDelete, onEdit }) => (
             <Pencil size={16} />
             Modifier
         </button>
-        <button className=" cursor-pointer flex items-center gap-2 bg-[#c1440e] text-white px-6 py-3 rounded-xl font-bold hover:bg-amber-700 transition-all duration-300">
-            <CreditCard className="w-4 h-4" />
-            Réserver
-        </button>
+        <button
+                            type="button"
+                            onClick={onReserve}
+                            className="flex items-center gap-2 border border-primary text-primary px-6 py-3 rounded-xl font-bold 
+                            hover:bg-amber-700 hover:text-white transition-all duration-300 ease-in-out cursor-pointer group"
+                            >
+                            <span>Réserver</span>
+                            <ChevronRight className="w-5 h-5 text-primary transition-transform duration-300 group-hover:translate-x-1 group-hover:text-white" />
+                        </button>
     </div>
   </div>
 );

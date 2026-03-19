@@ -1,56 +1,30 @@
 import Api from "./api/Api";
 
-// GET all sites
-export const getCircuit = () => {
-    return Api.get("/circuits");
-};
+export const getCircuit = () => Api.get("/circuits");
 
-// GET site by id
-export const getCircuitById = (id) => {
-    return Api.get(`/circuits/${id}`);
-};
+export const getCircuitById = (id) => Api.get(`/circuits/${id}`);
 
-// pagination
-export const getSitesByPage = (page = 0, size = 10) => {
-    return Api.get("/circuits/page", {
-    params: { page, size }
+export const getSitesByPage = (page = 0, size = 10) =>
+    Api.get("/circuits/page", { params: { page, size } });
+
+export const getCircuitsByDateDesc = () => Api.get("/circuits/order/date/desc");
+export const getCircuitsByDateAsc  = () => Api.get("/circuits/order/date/asc");
+export const getCircuitsByNameAsc  = () => Api.get("/circuits/order/name/asc");
+export const getCircuitsByNameDesc = () => Api.get("/circuits/order/name/desc");
+
+export const searchCircuit = (query) =>
+    Api.get("/circuits/search", { params: { name: query } });
+
+// ✅ POST — multipart/form-data
+export const postCircuit = (formData) =>
+    Api.post("/circuits", formData, {
+        headers: { "Content-Type": "multipart/form-data" }
     });
-};
 
-    //Dec recent circuit
-export const getCircuitsByDateDesc = () => {
-    return Api.get("/circuits/order/date/desc");
-}
+// ✅ PUT — multipart/form-data
+export const putCircuit = (id, formData) =>
+    Api.put(`/circuits/${id}`, formData, {
+        headers: { "Content-Type": "multipart/form-data" }
+    });
 
-// Plus Ancien circuit
-export const getCircuitsByDateAsc  = () => {
-    return Api.get("/circuits/order/date/asc");
-}
-
-// A - Z
-export const getCircuitsByNameAsc  = () => {
-    return Api.get("/circuits/order/name/asc");
-}
-// Z - A
-export const getCircuitsByNameDesc = () => {
-    return Api.get("/circuits/order/name/desc");
-}
-
-// Search
-export const searchCircuit = (query) => {
-    return Api.get("/circuits/search", { params: { name: query } });
-}
-// POST
-export const postCircuit = (circuit) => {
-    return Api.post("/circuits", circuit);
-};
-
-// PUT
-export const putCircuit = (id,circuit) => {
-    return Api.put(`/circuits/${id}`, circuit);
-};
-
-// DELETE
-export const deleteCircuit = (id) => {
-    return Api.delete(`/circuits/${id}`);
-};
+export const deleteCircuit = (id) => Api.delete(`/circuits/${id}`);

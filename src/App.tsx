@@ -6,6 +6,7 @@ import Register from "./pages/Register"
 import IndexP from "./pages/IndexP"
 import CircuitDetail from "./pages/mangers/circuits/circuitDetail/CircuitDetail"
 import SitesDetail from "./pages/mangers/sites/siteDetail/SitesDetail"
+import ReservationPage from "./pages/mangers/Reservation/ReservationPage"
 
 function App() {
 
@@ -22,6 +23,7 @@ function App() {
 
         <Route path="/detailcircuits" element={<CircuitDetail />} />
         <Route path="/detailsite" element={<SitesDetail />} />
+        <Route path="/reservation" element={<ReservationPage />} />
 
         
 

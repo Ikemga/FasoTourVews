@@ -5,9 +5,6 @@ const BASE_URL = "http://localhost:8080/api/fasotour/v1";
 // Api instance
 const Api = axios.create({
   baseURL: BASE_URL,
-  headers: {
-    "Content-Type": "application/json",
-  },
 });
 
 
@@ -67,3 +64,9 @@ Api.interceptors.response.use(
 );
 
 export default Api;
+
+// Utilitaire pour images
+export const getImageUrl = (url) => {
+    if (!url) return null;
+    return url.replace("https://fasotour.bf", "http://localhost:8080");
+};
