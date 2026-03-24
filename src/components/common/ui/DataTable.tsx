@@ -83,7 +83,7 @@ const DataTable = ({
   const hasActions = onView || onEdit || onDelete;
 
   return (
-    <div className="rounded-2xl overflow-hidden border border-gray-200 bg-white shadow-sm">
+    <div className="rounded-2xl overflow-x-auto  border border-gray-200 bg-white shadow-sm">
       <table className="w-full text-sm">
         <thead>
           <tr className="bg-[#f7f5f0] text-gray-400 font-medium text-xs uppercase tracking-wide">

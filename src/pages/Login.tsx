@@ -4,7 +4,7 @@ import bgImage from "../components/common/img/Paysage burkinabé.jpeg";
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { AuthService } from "../service/AuthService";
+import { login } from "../service/AuthService";
 
 const Login = () => {
     const [showPassword, setShowPassword] = useState(false);
@@ -23,7 +23,7 @@ const Login = () => {
 
 
         try {
-            const data = await AuthService(email, password);
+            const data = await login(email, password);
 
             localStorage.setItem("accessToken", data.accessToken);
             localStorage.setItem("refreshToken", data.refreshToken);

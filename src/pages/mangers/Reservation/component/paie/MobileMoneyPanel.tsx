@@ -1,4 +1,4 @@
-import { Smartphone, Phone, User, ShieldCheck, Code } from "lucide-react";
+import { Smartphone, Phone, ShieldCheck, Code } from "lucide-react";
 import OperatorCard  from "./OperatorCard";
 import { OPERATORS } from "./Paymentconstants";
 import { InputText } from "../../../../../components/common/ui/Input";
@@ -46,7 +46,7 @@ const MobileMoneyPanel = ({ operator, setOperator, phone, setPhone, holder, setH
 
             {/* OTP */}
 
-             <div>
+            <div>
                 <label className="text-sm text-gray-700 flex items-center gap-1.5 mb-2 font-medium">
                     <Code size={14} /> Code OTP
                 </label>

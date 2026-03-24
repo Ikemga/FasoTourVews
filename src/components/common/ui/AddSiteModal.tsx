@@ -46,14 +46,14 @@ const AddSiteModal = ({ open, onClose, onSuccess }) => {
     const [videos, setVideos]           = useState([]);
     const [fichiers, setFichiers]       = useState([]);
 
-    // ✅ Auto-dismiss error
+    // 
     useEffect(() => {
         if (!error) return;
         const timer = setTimeout(() => setError(null), 3000);
         return () => clearTimeout(timer);
     }, [error]);
 
-    // ✅ Auto-dismiss success
+    // 
     useEffect(() => {
         if (!success) return;
         const timer = setTimeout(() => setSuccess(null), 2000);
@@ -100,7 +100,7 @@ const AddSiteModal = ({ open, onClose, onSuccess }) => {
 
     return (
         <>
-            {/* ✅ Toasts via Portal */}
+            {/*Toasts via Portal */}
             <Toast message={success} type="success" />
             <Toast message={error}   type="error"   />
 

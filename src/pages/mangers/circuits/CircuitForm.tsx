@@ -20,9 +20,9 @@ const CircuitForm = ({ onClose, onSuccess, initialData = null }) => {
     const [loading, setLoading]                 = useState(false);
     const [error, setError]                     = useState(null);
     const [success, setSuccess]                 = useState(null);
-    const [images, setImages]                   = useState([]);  // ✅ NOUVEAU
-    const [videos, setVideos]                   = useState([]);  // ✅ NOUVEAU
-    const [fichiers, setFichiers]               = useState([]);  // ✅ NOUVEAU
+    const [images, setImages]                   = useState([]);  
+    const [videos, setVideos]                   = useState([]);  
+    const [fichiers, setFichiers]               = useState([]);  
 
     useEffect(() => {
         if (!error) return;
@@ -52,7 +52,7 @@ const CircuitForm = ({ onClose, onSuccess, initialData = null }) => {
         setError(null);
         setLoading(true);
 
-        // ✅ FormData — plus de payload JSON
+        // 
         const formData = new FormData();
         formData.append("circuitName",           form.circuitName);
         formData.append("description",           form.description ?? "");
@@ -65,18 +65,18 @@ const CircuitForm = ({ onClose, onSuccess, initialData = null }) => {
         formData.append("nombreExact",           parseInt(form.nombreExact) || 0);
         formData.append("statut",                statut);
         formData.append("transport",             transportInclus);
-        formData.append("agenceId",              122);
+        formData.append("agenceId",              125);
         sitesSelected.forEach(s  => formData.append("siteIds",  s.id));
         guidesSelected.forEach(g => formData.append("guideIds", g.id));
-        images.forEach(img       => formData.append("images",   img));   // ✅
-        videos.forEach(vid       => formData.append("videos",   vid));   // ✅
-        fichiers.forEach(fic     => formData.append("fichiers", fic));   // ✅
+        images.forEach(img       => formData.append("images",   img));  
+        videos.forEach(vid       => formData.append("videos",   vid));   
+        fichiers.forEach(fic     => formData.append("fichiers", fic));   
 
         try {
             if (isEdit) {
-                await putCircuit(initialData.id, formData);  // ✅ formData
+                await putCircuit(initialData.id, formData);  
             } else {
-                await postCircuit(formData);  // ✅ formData
+                await postCircuit(formData);  
             }
             setSuccess(isEdit ? "Circuit modifié avec succès !" : "Circuit créé avec succès !");
             setTimeout(() => {
@@ -160,7 +160,7 @@ const CircuitForm = ({ onClose, onSuccess, initialData = null }) => {
                     </div>
                 </div>
 
-                {/* ✅ onChange sur chaque composant */}
+                {/*onChange sur chaque composant */}
                 <div className="border border-dashed border-gray-200 rounded-2xl p-4 space-y-3">
                     <p className="text-xs text-gray-400 font-medium">Médias & fichiers</p>
                     <div className="flex gap-6 items-start flex-wrap">

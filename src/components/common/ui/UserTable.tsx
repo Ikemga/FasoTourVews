@@ -43,7 +43,7 @@ const formatDate = (dateStr) => {
   return d.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric" });
 };
 
-const UserTable = ({ users = [], onDelete }) => {
+const UserTable = ({ users = [], onDelete, onEdit }) => {
   return (
     <div className="rounded-2xl overflow-hidden border border-gray-200 bg-white shadow-sm">
       <table className="w-full text-sm">
@@ -111,7 +111,9 @@ const UserTable = ({ users = [], onDelete }) => {
                       <button className="p-1.5 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition">
                         <Eye className="w-4 h-4" />
                       </button>
-                      <button className="p-1.5 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition">
+                      <button 
+                      onClick={() => onEdit({ id, nomComplet, mail, telephone, roles, actif, createAt })}
+                      className="p-1.5 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition">
                         <Pencil className="w-4 h-4" />
                       </button>
                       <button

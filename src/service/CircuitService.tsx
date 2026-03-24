@@ -15,13 +15,11 @@ export const getCircuitsByNameDesc = () => Api.get("/circuits/order/name/desc");
 export const searchCircuit = (query) =>
     Api.get("/circuits/search", { params: { name: query } });
 
-// ✅ POST — multipart/form-data
 export const postCircuit = (formData) =>
     Api.post("/circuits", formData, {
         headers: { "Content-Type": "multipart/form-data" }
     });
 
-// ✅ PUT — multipart/form-data
 export const putCircuit = (id, formData) =>
     Api.put(`/circuits/${id}`, formData, {
         headers: { "Content-Type": "multipart/form-data" }

@@ -3,22 +3,23 @@ import { PlusCircle } from "lucide-react";
 import { BouttonPopUp } from "../../../components/common/ui/Bt";
 import DataTable from "../../../components/common/ui/DataTable";
 import { agencesColumns } from "../../../components/common/ui/tableConfigs";
-import {
-
-  deleteAgence,
-  getAgencesAlphabetical,
-  toggleAgence,
-} from "../../../service/AgenceService";
+import { deleteAgence, getAgencesAlphabetical, toggleAgence } from "../../../service/AgenceService";
 import AddAgence from "../../../components/common/ui/AddAgence";
 
 const AgenceManager = () => {
-  const [openModal, setOpenModal] = useState(false);
-  const [agences, setAgences]     = useState([]);
-  const [loading, setLoading]     = useState(true);
-  const [error, setError]         = useState(null);
+  const [agences, setAgences]           = useState([]);
+  const [loading, setLoading]           = useState(true);
+  const [error, setError]               = useState(null);
+  const [successMessage, setSuccessMessage] = useState("");
+  const [agenceEdit, setAgenceEdit]     = useState(null);
+  const [openForm, setOpenForm]         = useState(false);
 
-  // ─── Fetch ───────────────────────────────────────────────────────────────────
+  const showSuccess = (message: string) => {
+    setSuccessMessage(message);
+    setTimeout(() => setSuccessMessage(""), 3000);
+  };
 
+  // ─── Fetch ──────────────────────────────────────────────────────────────────
   const fetchAgences = async () => {
     try {
       setLoading(true);
@@ -33,17 +34,15 @@ const AgenceManager = () => {
     }
   };
 
-  useEffect(() => {
-    fetchAgences();
-  }, []);
+  useEffect(() => { fetchAgences(); }, []);
 
-  // ─── Handlers ────────────────────────────────────────────────────────────────
-
+  // ─── Handlers ───────────────────────────────────────────────────────────────
   const handleDelete = async (row: any) => {
     if (!confirm(`Supprimer l'agence "${row.nomAgence}" ?`)) return;
     try {
       await deleteAgence(row.id);
       setAgences((prev: any[]) => prev.filter((a) => a.id !== row.id));
+      showSuccess("Agence supprimée avec succès !");
     } catch (err) {
       console.error("Erreur lors de la suppression :", err);
     }
@@ -52,12 +51,9 @@ const AgenceManager = () => {
   const handleToggle = async (row: any) => {
     try {
       await toggleAgence(row.id);
-      // Met à jour le statut localement sans re-fetch
       setAgences((prev: any[]) =>
         prev.map((a) =>
-          a.id === row.id
-            ? { ...a, statut: a.statut === "active" ? "inactive" : "active" }
-            : a
+          a.id === row.id ? { ...a, actif: !a.actif } : a  // ✅ toggle actif
         )
       );
     } catch (err) {
@@ -65,15 +61,41 @@ const AgenceManager = () => {
     }
   };
 
-  const handleAdded = () => {
-    setOpenModal(false);
-    fetchAgences();
+  //Ouvrir formulaire en mode édition
+  const handleEdit = (row: any) => {
+    setAgenceEdit(row);
+    setOpenForm(true);
   };
 
-  // ─── Render ──────────────────────────────────────────────────────────────────
+  // Ouvrir formulaire en mode création
+  const handleNew = () => {
+    setAgenceEdit(null);
+    setOpenForm(true);
+  };
 
+  const handleClose = () => {
+    setOpenForm(false);
+    setAgenceEdit(null);
+  };
+
+  const handleSuccess = () => {
+    fetchAgences();
+    showSuccess(agenceEdit ? "Agence modifiée avec succès !" : "Agence créée avec succès !");
+  };
+
+  // ─── Render ─────────────────────────────────────────────────────────────────
   return (
     <div className="p-6">
+
+      {/* Toast succès */}
+      {successMessage && (
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-green-600 text-white text-sm px-5 py-3 rounded-xl shadow-lg">
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          </svg>
+          {successMessage}
+        </div>
+      )}
 
       {/* En-tête */}
       <div className="flex justify-between items-center mb-4">
@@ -81,7 +103,7 @@ const AgenceManager = () => {
         <BouttonPopUp
           label="Nouvelle agence"
           icon={<PlusCircle size={18} />}
-          onClick={() => setOpenModal(true)}
+          onClick={handleNew} 
         />
       </div>
 
@@ -97,10 +119,7 @@ const AgenceManager = () => {
       {error && (
         <div className="text-center py-8 text-red-400 text-sm bg-red-50 rounded-xl border border-red-100">
           {error}
-          <button
-            onClick={fetchAgences}
-            className="ml-3 underline text-red-500 hover:text-red-700"
-          >
+          <button onClick={fetchAgences} className="ml-3 underline text-red-500 hover:text-red-700">
             Réessayer
           </button>
         </div>
@@ -112,18 +131,19 @@ const AgenceManager = () => {
           rows={agences}
           columns={agencesColumns}
           onView={(row)   => console.log("voir", row)}
-          onEdit={(row)   => handleToggle(row)}
-          onDelete={(row) => handleDelete(row)}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
           emptyText="Aucune agence trouvée."
         />
       )}
 
-      {/* Modal ajout — remplace par ton composant AddAgence */}
+      {/* Modal création / édition */}
       <AddAgence
-        open={openModal}
-        onClose={() => setOpenModal(false)}
-        onSuccess={handleAdded}
-      /> 
+        open={openForm}
+        onClose={handleClose}
+        onSuccess={handleSuccess}
+        initialData={agenceEdit}
+      />
     </div>
   );
 };

@@ -1,64 +1,82 @@
 import HeaderTitle from "../../../components/common/utilitaire/HeaderTitle";
 import UserStatistique from "../../../components/common/utilitaire/UserStatistique";
 import UserTabGroup from "../../../components/common/ui/UserTabGroup";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import TouristeManager from "./TouristeManager";
 import GuideManager from "./GuideManager";
 import AgenceManager from "./AgenceManager";
 import AllUserManager from "./AllUserManager";
 import RechercheBarre from "./RechercheBarre";
+import { getUserStats } from "../../../service/DashboardService";
 
+const tabs = [
+  { label: "Tous", count: 0 },
+  { label: "Touristes", count: 0 },
+  { label: "Guides", count: 0 },
+  { label: "Agences", count: 0 },
+];
 
-    const tabs = [
-    { label: "Tous", count: 7 },
-    { label: "Touristes", count: 3 },
-    { label: "Guides", count: 2 },
-    { label: "Agences", count: 2 },
-    ];
+const Utiliisateurs = () => {
+  const [activeTab, setActiveTab] = useState(0);
+  const [search, setSearch] = useState("");
+  const [userStatsData, setUserStatsData] = useState(null);
+  const [tabCounts, setTabCounts] = useState(tabs);
 
-const Utiliisateurs = () =>{
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const { data } = await getUserStats();
+        setUserStatsData(data);
 
-    const [activeTab, setActiveTab] = useState(0);
-    const [search, setSearch]       = useState("");
+        // Mettre à jour les counts des tabs dynamiquement
+        setTabCounts([
+          { label: "Tous", count: data.totalUtilisateurs },
+          { label: "Touristes", count: data.totalTouristes },
+          { label: "Guides", count: data.totalGuides },
+          { label: "Agences", count: data.totalAgences },
+        ]);
+      } catch (error) {
+        console.error("Erreur récupération stats utilisateur :", error);
+      }
+    };
 
-    return(
-        <div className="flex flex-col w-full">
-            <HeaderTitle
-                title= "Gestion des utilisateurs"
-                label= "Vue d'ensemble utilisateur"
-                initiales= "AD"
-                onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}/>
+    fetchStats();
+  }, []);
 
+  return (
+    <div className="flex flex-col w-full">
+      <HeaderTitle
+        title="Gestion des utilisateurs"
+        label="Vue d'ensemble utilisateur"
+        initiales="AD"
+      />
 
-            <main className="flex flex-col flex-1">
-                <UserStatistique />
-                <div className="mx-5 py-5 flex justify-between items-center-safe gap-6">
-                    <RechercheBarre
-                        value={search}
-                        onChange={(val) => setSearch(val)}
-                    />
-                </div>
+      <main className="flex flex-col flex-1">
+        {/* Passer les données dynamiques à UserStatistique */}
+        {userStatsData && <UserStatistique data={userStatsData} />}
 
-                <div className="w-full">
-                    <div className="flex justify-start items-start mx-4">
-                        <UserTabGroup
-                            tabs={tabs}
-                            activeTab={activeTab}
-                            onChange={(index) => setActiveTab(index)}
-                        />
-                    </div>
-                    
-                    {/* Afficher du contenu selon l'onglet actif */}
-                    
-                    {activeTab === 0 && <AllUserManager/> }
-                    {activeTab === 1 && <TouristeManager />}
-                    {activeTab === 2 && <GuideManager />}
-                    {activeTab === 3 && <AgenceManager/>}
-                </div>
-                
-            </main>
-                
+        <div className="mx-5 py-5 flex justify-between items-center-safe gap-6">
+          <RechercheBarre value={search} onChange={(val) => setSearch(val)} />
         </div>
-    )
-}
+
+        <div className="w-full">
+          <div className="flex justify-start items-start mx-4">
+            <UserTabGroup
+              tabs={tabCounts}
+              activeTab={activeTab}
+              onChange={(index) => setActiveTab(index)}
+            />
+          </div>
+
+          {/* Contenu selon l'onglet actif */}
+          {activeTab === 0 && <AllUserManager search={search} />}
+          {activeTab === 1 && <TouristeManager search={search} />}
+          {activeTab === 2 && <GuideManager search={search} />}
+          {activeTab === 3 && <AgenceManager search={search} />}
+        </div>
+      </main>
+    </div>
+  );
+};
+
 export default Utiliisateurs;

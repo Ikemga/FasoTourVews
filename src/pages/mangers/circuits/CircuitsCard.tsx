@@ -1,4 +1,4 @@
-import {MapPin, Trash2, Users, CalendarDaysIcon, ChevronRight, User2Icon } from 'lucide-react'; 
+import {MapPin, Trash2, Users, CalendarDaysIcon, ChevronRight } from 'lucide-react'; 
 
 
 const CircuitsCard = ({ image, circuitName, description, duree, nombreRestant, prixIndividuel,nombreExact,sites, guide, onDelete, onDetail, onReserve}) => {

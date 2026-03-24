@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getUsersByRecent, searchUsers } from "../../../service/UtilisateurService";
+import { deleteUtilisateur, getUsersByRecent, searchUsers } from "../../../service/UtilisateurService";
 import DataTable from "../../../components/common/ui/DataTable";
 import { utilisateursColumns } from "../../../components/common/ui/tableConfigs";
 
@@ -7,6 +7,13 @@ const AllUserManager = ({ search = "", actif }: { search?: string; actif?: boole
   const [users, setUsers]     = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError]     = useState(null);
+  const[successMessage, setSuccessMessage] = useState("");
+
+
+  const showSuccess = (message : string) =>{
+    setSuccessMessage(message)
+    setTimeout(()=> setSuccessMessage(""), 3000);
+  };
 
   const fetchUsers = async (searchVal: string, actifVal?: boolean) => {
     try {
@@ -30,10 +37,12 @@ const AllUserManager = ({ search = "", actif }: { search?: string; actif?: boole
     return () => clearTimeout(timer);
   }, [search, actif]);
 
-  const handleDelete = async (row: any) => {         // ← reçoit toute la row
+  const handleDelete = async (row: any) => {
     if (!confirm("Supprimer cet utilisateur ?")) return;
     try {
+      await deleteUtilisateur(row.id);
       setUsers((prev: any[]) => prev.filter((u) => u.id !== row.id));
+      showSuccess("Utilisateur supprimé avec succès !");
     } catch (err) {
       console.error("Erreur lors de la suppression :", err);
     }
@@ -41,6 +50,16 @@ const AllUserManager = ({ search = "", actif }: { search?: string; actif?: boole
 
   return (
     <div className="p-6">
+
+      {successMessage && (
+        <div className="fixed top-6 right-6 z-50 flex items-center gap-3 bg-green-600 text-white text-sm px-5 py-3 rounded-xl shadow-lg animate-fade-in">
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          </svg>
+          {successMessage}
+        </div>
+      )}
+
       <p className="text-xl font-bold text-left mb-4">
         Liste de tous les utilisateurs
       </p>

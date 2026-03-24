@@ -1,27 +1,36 @@
-import { useState }         from "react";
+import { useState }              from "react";
 import { ArrowLeft, ShieldCheck } from "lucide-react";
-import { CATEGORIES, OPERATORS } from "./component/paie/Paymentconstants";
-import PaymentSuccess from "./component/paie/PaymentSuccess";
-import CategoryCard from "./component/paie/CategoryCard";
-import MobileMoneyPanel from "./component/paie/MobileMoneyPanel";
-import CarteBancairePanel from "./component/paie/CarteBancairePanel";
-import VirementPanel from "./component/paie/VirementPanel";
+import { CATEGORIES, OPERATORS }  from "./component/paie/Paymentconstants";
+import PaymentSuccess             from "./component/paie/PaymentSuccess";
+import CategoryCard               from "./component/paie/CategoryCard";
+import MobileMoneyPanel           from "./component/paie/MobileMoneyPanel";
+import CarteBancairePanel         from "./component/paie/CarteBancairePanel";
+import VirementPanel              from "./component/paie/VirementPanel";
 
+const FRAIS_RESERVATION = 200;
 
-const PaymentPage = ({ circuit, reservationData, total, onBack, onSuccess }) => {
+const PaymentPage = ({
+    circuit,
+    reservationData,
+    total,
+    montantAPayer,
+    modePaiement,
+    onBack,
+    onSuccess,
+}) => {
     const [category, setCategory] = useState("mobile");
     const [operator, setOperator] = useState("orange");
-    const [phone, setPhone]       = useState("");
-    const [holder, setHolder]     = useState("");
-    const [step, setStep]         = useState("form");   // "form" | "done"
-    const [loading, setLoading]   = useState(false);
-    const [error, setError]       = useState(null);
+    const [phone,    setPhone]    = useState("");
+    const [holder,   setHolder]   = useState("");
+    const [step,     setStep]     = useState("form");
+    const [loading,  setLoading]  = useState(false);
+    const [error,    setError]    = useState(null);
 
     const selectedOp = OPERATORS.find(o => o.id === operator);
 
     const methodLabel =
-        category === "mobile"   ? (selectedOp?.label ?? "Mobile Money") :
-        category === "carte"    ? "Carte bancaire" :
+        category === "mobile" ? (selectedOp?.label ?? "Mobile Money") :
+        category === "carte"  ? "Carte bancaire" :
         "Virement";
 
     const handlePay = async () => {
@@ -36,13 +45,12 @@ const PaymentPage = ({ circuit, reservationData, total, onBack, onSuccess }) => 
         setStep("done");
     };
 
-    // ── Écran succès ───────────────────────────────────────────
     if (step === "done") {
         return (
             <PaymentSuccess
                 circuit={circuit}
                 reservationData={reservationData}
-                total={total}
+                total={montantAPayer}   // affiche ce qui a réellement été payé
                 methodLabel={methodLabel}
                 phone={phone}
                 holder={holder}
@@ -51,26 +59,26 @@ const PaymentPage = ({ circuit, reservationData, total, onBack, onSuccess }) => 
         );
     }
 
-    // ── Formulaire paiement ────────────────────────────────────
     return (
-        <div className="min-h-screen w-full bg-gray-50 items-center justify-center">
+        <div className="min-h-screen bg-gray-50 flex flex-col items-center py-8 px-4">
+            <div className="w-full max-w-md space-y-5">
 
-            {/* Header */}
-            <div className="px-6 pt-8 pb-4">
-                <button
-                    type="button"
-                    onClick={onBack}
-                    className="flex items-center gap-2 text-gray-500 hover:text-gray-800 transition mb-4"
-                >
-                    <ArrowLeft size={18} />
-                </button>
-                <h1 className="text-3xl font-black text-gray-900 tracking-tight">Paiement sécurisé</h1>
-                <p className="text-sm text-gray-500 mt-1">
-                    Finalisez votre réservation — {circuit?.circuitName}
-                </p>
-            </div>
-
-            <div className="px-6 pb-10 space-y-5">
+                {/* Header */}
+                <div className="flex justify-center items-center gap-2">
+                    <button
+                        type="button"
+                        onClick={onBack}
+                        className="flex items-center gap-2 text-gray-500 hover:text-gray-800 transition mb-4"
+                    >
+                        <ArrowLeft size={30} />
+                    </button>
+                    <div>
+                        <h4 className="text-2xl font-black text-gray-900 tracking-tight">Paiement sécurisé</h4>
+                        <p className="text-sm text-gray-500 mt-1">
+                            Finalisez votre réservation — {circuit?.circuitName}
+                        </p>
+                    </div>
+                </div>
 
                 {/* Catégories */}
                 <div className="flex gap-3 flex-wrap">
@@ -95,24 +103,26 @@ const PaymentPage = ({ circuit, reservationData, total, onBack, onSuccess }) => 
                         setHolder={setHolder}
                     />
                 )}
-                {category === "carte" && (
-                    <CarteBancairePanel holder={holder} setHolder={setHolder} />
-                )}
-                {category === "virement" && (
-                    <VirementPanel circuit={circuit} />
-                )}
+                {category === "carte"    && <CarteBancairePanel holder={holder} setHolder={setHolder} />}
+                {category === "virement" && <VirementPanel circuit={circuit} />}
 
-                {/* Récapitulatif montant */}
-                <div className="bg-white rounded-2xl p-5 shadow-sm flex justify-between items-center">
-                    <div>
-                        <p className="text-xs text-gray-400 mb-0.5">Montant total</p>
-                        <p className="text-2xl font-black text-[#c1440e]">
-                            {total?.toLocaleString('fr-FR')} FCFA
-                        </p>
+                {/* Récapitulatif — affiche le bon montant selon l'option choisie */}
+                <div className="bg-white rounded-2xl p-5 shadow-sm space-y-2">
+                    <div className="flex justify-between items-center text-sm text-gray-500">
+                        <span>{reservationData?.nombrePersonne} × {circuit?.prixIndividuel?.toLocaleString("fr-FR")} FCFA</span>
+                        <span className="font-semibold text-gray-800">{total?.toLocaleString("fr-FR")} FCFA</span>
                     </div>
-                    <div className="text-right text-xs text-gray-400">
-                        <p>{reservationData?.nombrePersonne} pers.</p>
-                        <p>× {circuit?.prixIndividuel?.toLocaleString('fr-FR')} FCFA</p>
+                    <div className="flex justify-between items-center text-sm text-gray-500">
+                        <span>Frais de réservation</span>
+                        <span className="font-semibold text-[#08a103]">{FRAIS_RESERVATION.toLocaleString("fr-FR")} FCFA</span>
+                    </div>
+                    <div className="flex justify-between items-center border-t border-dashed border-black/10 pt-3">
+                        <span className="text-sm text-gray-500">
+                            {modePaiement === "frais" ? "Vous payez maintenant" : "Total à payer"}
+                        </span>
+                        <span className="text-2xl font-black text-[#c1440e]">
+                            {montantAPayer?.toLocaleString("fr-FR")} FCFA
+                        </span>
                     </div>
                 </div>
 
@@ -123,7 +133,7 @@ const PaymentPage = ({ circuit, reservationData, total, onBack, onSuccess }) => 
                     </p>
                 )}
 
-                {/* Bouton valider */}
+                {/* Bouton */}
                 <button
                     type="button"
                     onClick={handlePay}
@@ -139,7 +149,7 @@ const PaymentPage = ({ circuit, reservationData, total, onBack, onSuccess }) => 
                     ) : (
                         <>
                             <ShieldCheck size={18} />
-                            Confirmer le paiement
+                            Payer {montantAPayer?.toLocaleString("fr-FR")} FCFA
                         </>
                     )}
                 </button>

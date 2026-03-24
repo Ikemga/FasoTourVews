@@ -1,13 +1,7 @@
 import { motion } from "framer-motion";
 import { Users } from "lucide-react";
-
-const stats = [
-    { icon: Users,        value: "100",    label: "Total",              delta: "+2",   positive: true },
-    { icon: Users,        value: "5",   label: "Agences",             delta: "+2",   positive: true },
-    { icon: Users,        value: "25",    label: "Guides",              delta: "+2",   positive: true },
-    { icon: Users,        value: "25",    label: "Admi",              delta: "+2",   positive: true },
-    { icon: Users,        value: "100",  label: "Actif",           delta: "+2",   positive: true },
-    ];
+import { useEffect, useState } from "react";
+import { getUserStats } from "../../../service/DashboardService";
 
 const cardVariants = {
   hidden: { opacity: 0, y: 28, scale: 0.96 },
@@ -65,14 +59,43 @@ const StatCard = ({ icon: Icon, value, label, delta, positive, index }) => (
   </motion.div>
 );
 
-const UserStatistique = () => (
-  <div className="w-full p-6 bg-[#faf7f4]">
-    <div className="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5  gap-4 w-full">
-      {stats.map((s, i) => (
-        <StatCard key={i} {...s} index={i} />
-      ))}
+const UserStatistique = () => {
+  const [stats, setStats] = useState([]);
+
+  useEffect(() => {
+    const fetchUserStats = async () => {
+      try {
+        const { data } = await getUserStats();
+
+        // Mapping du DTO backend vers UI
+        const mappedStats = [
+          { icon: Users, value: data.totalUtilisateurs, label: "Total", delta: "+0", positive: true },
+          { icon: Users, value: data.totalAgences, label: "Agences", delta: "+0", positive: true },
+          { icon: Users, value: data.totalGuides, label: "Guides", delta: "+0", positive: true },
+          { icon: Users, value: data.utilisateursActifs, label: "Actifs", delta: "+0", positive: true },
+          { icon: Users, value: data.totalTouristes, label: "Touristes", delta: "+0", positive: true },
+        ];
+
+        setStats(mappedStats);
+      } catch (error) {
+        console.error("Erreur chargement stats utilisateur :", error);
+      }
+    };
+
+    fetchUserStats();
+  }, []);
+
+  if (!stats.length) return <p className="p-6">Chargement des statistiques utilisateur...</p>;
+
+  return (
+    <div className="w-full p-6 bg-[#faf7f4]">
+      <div className="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 w-full">
+        {stats.map((s, i) => (
+          <StatCard key={i} {...s} index={i} />
+        ))}
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 export default UserStatistique;

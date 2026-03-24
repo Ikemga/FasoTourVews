@@ -1,15 +1,7 @@
 import { motion } from "framer-motion";
 import { Map, MapPin, Users, CalendarCheck, Star } from "lucide-react";
-
-const stats = [
-  { icon: Map,          value: "24",    label: "Circuits actifs",     delta: "+3",   positive: true },
-  { icon: MapPin,       value: "87",    label: "Sites touristiques",  delta: "+5",   positive: true },
-  { icon: Users,        value: "42",    label: "Guides",              delta: "+2",   positive: true },
-  { icon: Users,        value: "100",   label: "Agences",             delta: "+2",   positive: true },
-  { icon: Users,        value: "1000",  label: "Touristes",           delta: "+2",   positive: true },
-  { icon: CalendarCheck,value: "156",   label: "Réservations (mois)", delta: "+18%", positive: true },
-  { icon: Star,         value: "4.6",   label: "Note moyenne",        delta: "+0.1", positive: true },
-];
+import { useEffect, useState } from "react";
+import { getDashboard } from "../../../service/DashboardService";
 
 const cardVariants = {
   hidden: { opacity: 0, y: 28, scale: 0.96 },
@@ -67,14 +59,45 @@ const StatCard = ({ icon: Icon, value, label, delta, positive, index }) => (
   </motion.div>
 );
 
-const DashboardStats = () => (
-  <div className="flex flex-col md:flex-row gap-4 p-6 bg-[#faf7f4] w-full">
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 w-full">
-      {stats.map((s, i) => (
-        <StatCard key={i} {...s} index={i} />
-      ))}
+const DashboardStats = () => {
+  const [stats, setStats] = useState([]);
+
+  useEffect(() => {
+    const fetchDashboard = async () => {
+      try {
+        const { data } = await getDashboard();
+
+        // Mapping du DTO backend vers UI
+        const mappedStats = [
+          { icon: Map, value: data.circuitsActifs, label: "Circuits actifs", delta: "+0", positive: true },
+          { icon: MapPin, value: data.totalSites, label: "Sites touristiques", delta: "+0", positive: true },
+          { icon: Users, value: data.totalGuides, label: "Guides", delta: "+0", positive: true },
+          { icon: Users, value: data.totalAgences, label: "Agences", delta: "+0", positive: true },
+          { icon: Users, value: data.totalTouristes, label: "Touristes", delta: "+0", positive: true },
+          { icon: CalendarCheck, value: data.reservationsMois, label: "Réservations (mois)", delta: "+0%", positive: true },
+          { icon: Star, value: data.noteMoyenne, label: "Note moyenne", delta: "+0", positive: true },
+        ];
+
+        setStats(mappedStats);
+      } catch (error) {
+        console.error("Erreur chargement dashboard :", error);
+      }
+    };
+
+    fetchDashboard();
+  }, []);
+
+  if (!stats.length) return <p className="p-6">Chargement des statistiques...</p>;
+
+  return (
+    <div className="flex flex-col md:flex-row gap-4 p-6 bg-[#faf7f4] w-full">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 w-full">
+        {stats.map((s, i) => (
+          <StatCard key={i} {...s} index={i} />
+        ))}
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 export default DashboardStats;

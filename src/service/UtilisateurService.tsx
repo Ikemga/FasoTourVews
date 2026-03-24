@@ -39,3 +39,7 @@ export const searchUsers = (search?: string, actif?: boolean) => {
     if (actif !== undefined) params.actif = String(actif);
     return Api.get(`${BASE}/search`, { params });
 };
+
+export const deleteUtilisateur = (id) => {
+    return Api.delete(`${BASE}/${id}`);
+};

@@ -9,7 +9,7 @@ export const getGuides = () => {
 
 // GET all guides ordered alphabetically (A → Z)
 export const getGuidesAlphabetical = () => {
-    return Api.get(`${BASE}/order/name/desc`);
+    return Api.get(`${BASE}/order/name/asc`);
 };
 
 // GET guide by id
