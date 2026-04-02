@@ -20,9 +20,9 @@ const CircuitForm = ({ onClose, onSuccess, initialData = null }) => {
     const [loading, setLoading]                 = useState(false);
     const [error, setError]                     = useState(null);
     const [success, setSuccess]                 = useState(null);
-    const [images, setImages]                   = useState([]);  
-    const [videos, setVideos]                   = useState([]);  
-    const [fichiers, setFichiers]               = useState([]);  
+    const [images, setImages]                   = useState([]);
+    const [videos, setVideos]                   = useState([]);
+    const [fichiers, setFichiers]               = useState([]);
 
     useEffect(() => {
         if (!error) return;

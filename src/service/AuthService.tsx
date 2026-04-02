@@ -1,10 +1,19 @@
 import Api from "./api/Api";
+import { saveTokens } from "./token/TokenService";
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
 
 export const login = async (mail: string, motDePasse: string) => {
     const response = await Api.post("/auth/login", { mail, motDePasse });
-    return response.data;
+    return  response.data;
+
+    /*
+    saveTokens({
+        accessToken:  data.accessToken,
+        refreshToken: data.refreshToken,
+        role :         data.role,
+    });
+        */
 };
 
 export const logout = async (refreshToken: string) => {

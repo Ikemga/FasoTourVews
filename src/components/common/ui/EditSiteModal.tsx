@@ -1,6 +1,6 @@
 import { X, CheckCircle, AlertCircle } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
-import { InputHeure, InputText, Label, LabelRequiert, PrixInput, Textarea } from "./Input";
+import { motion } from "framer-motion";
+import { InputHoraire, InputText, Label, LabelRequiert, PrixInput, Textarea } from "./Input";
 import ImageUploadMultiple from "./ImageUploadMultiple";
 import VideoUploadMultiple from "./VideoUploadMultiple";
 import FileUploadMultiple from "./FileUploadMultiple";
@@ -9,7 +9,6 @@ import CategorieSelector from "./CategorieSelector";
 import { putSites } from "../../../service/SiteService";
 import { createPortal } from "react-dom";
 
-// ✅ Toast réutilisable
 const Toast = ({ message, type }) =>
     message ? createPortal(
         <motion.div
@@ -41,8 +40,15 @@ const EditSiteModal = ({ open, onClose, onSuccess, site }) => {
     const [videos, setVideos]             = useState([]);
     const [fichiers, setFichiers]         = useState([]);
 
+    const [ouverture, setOuverture] = useState("08:00");
+    const [fermeture, setFermeture] = useState("17:00");
+
+
     useEffect(() => {
         if (site?.categories) setSelectedCats(site.categories);
+
+        if (site?.heureOuverture) setOuverture(site.heureOuverture);
+        if (site?.heureFermeture) setFermeture(site.heureFermeture);
     }, [site]);
 
     useEffect(() => {
@@ -62,6 +68,12 @@ const EditSiteModal = ({ open, onClose, onSuccess, site }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        if (!ouverture || !fermeture) {
+            setError("Les horaires d'ouverture et de fermeture sont requis.");
+            return;
+        }
+
         setLoading(true);
         setError(null);
         setSuccess(null);
@@ -75,13 +87,17 @@ const EditSiteModal = ({ open, onClose, onSuccess, site }) => {
             localisation: formData.get("localisation"),
             noteMoyenne:  formData.get("noteMoyenne"),
             categorieIds: selectedCats.map(c => c.id),
-            horaire:      formData.get("horaire"),
+            heureOuverture: ouverture,
+            heureFermeture: fermeture, 
             tarif:        formData.get("tarif"),
             statut:       formData.get("statut"),
         };
 
         try {
             await putSites(site.id, payload);
+            console.log("PAYLOAD horaire:", payload.horaire);
+            console.log("ouverture state:", ouverture);
+            console.log("fermeture state:", fermeture);
             setSuccess("Site modifié avec succès !");
             setTimeout(() => {
                 setSuccess(null);
@@ -161,7 +177,13 @@ const EditSiteModal = ({ open, onClose, onSuccess, site }) => {
                                 <div className="flex gap-4 items-end">
                                     <div className="flex-1">
                                         <LabelRequiert label="Horaires" requiert="*" />
-                                        <InputHeure type="time" name="horaire" defaultValue={site?.horaire} />
+
+                                        <InputHoraire
+                                            ouverture={ouverture}
+                                            fermeture={fermeture}
+                                            setOuverture={setOuverture}
+                                            setFermeture={setFermeture}
+                                        />
                                     </div>
                                     <div className="flex-1">
                                         <Label label="Tarif" />

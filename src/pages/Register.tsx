@@ -4,16 +4,68 @@ import bgImage from "../components/common/img/Paysage burkinabé.jpeg";
 import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { inscrireTouriste } from "../service/AuthService";
 
 const Register = () => {
-        const [showPassword, setShowPassword] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
 
-        const navigate = useNavigate();
-        const handleSubmit= (e) => {
-            e.preventDefault();
+    const [formData, setFormData] = useState({
+        nomComplet: "",
+        adresse: "",
+        mail: "",
+        telephone: "",
+        pays: "",
+        preferenceTouristique: "",
+        motDePasse: "",
+        confirmMotDePasse: "",
+    });
+
+    const navigate = useNavigate();
+
+    const handleChange = (e) => {
+        setFormData({ ...formData, [e.target.name]: e.target.value });
+        setError(""); // reset erreur à chaque frappe
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setError("");
+
+        // Validation côté client
+        if (!formData.nomComplet || !formData.mail || !formData.motDePasse) {
+            setError("Veuillez remplir tous les champs obligatoires.");
+            return;
+        }
+
+        if (formData.motDePasse !== formData.confirmMotDePasse) {
+            setError("Les mots de passe ne correspondent pas.");
+            return;
+        }
+
+        setLoading(true);
+        try {
+            await inscrireTouriste({
+                nomComplet: formData.nomComplet,
+                mail: formData.mail,
+                motDePasse: formData.motDePasse,
+                telephone: formData.telephone,         // adapte si ton backend a un champ dédié
+                preferenceTouristique: formData.preferenceTouristique,
+            });
+
             navigate("/login");
-        };
-    
+        } catch (err) {
+            const message =
+                err?.response?.data?.message ||
+                err?.response?.data ||
+                "Une erreur est survenue. Veuillez réessayer.";
+            setError(typeof message === "string" ? message : "Erreur serveur.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <div
             style={{ backgroundImage: `url(${bgImage})` }}
@@ -33,26 +85,34 @@ const Register = () => {
                     <div className="bg-[#C45A1C] p-5 rounded-3xl shadow-lg">
                         <StoreIcon className="text-white" size={32} />
                     </div>
-
                     <LogeTitle
                         Title="Créer un compte"
                         Describe="Rejoignez notre boutique et découvrez nos collections exclusives"
                     />
                 </div>
 
-                <form className="space-y-3 mt-3 text-gray-500">
+                <form onSubmit={handleSubmit} className="space-y-3 mt-3 text-gray-500">
+
+                    {/* Message d'erreur global */}
+                    {error && (
+                        <div className="w-full bg-red-50 border border-red-300 text-red-600 text-sm rounded-lg px-4 py-2">
+                            {error}
+                        </div>
+                    )}
 
                     {/* Nom + Adresse */}
                     <div className="flex w-full items-start gap-4">
                         <div className="flex-1">
                             <div className="flex items-center gap-2 font-medium mb-2">
                                 <User size={18} />
-                                <Label label="Nom complet" />
+                                <Label label="Nom complet *" />
                             </div>
                             <InputText
                                 type="text"
-                                name="fullName"
+                                name="nomComplet"
                                 placeholder="SAWADOGO Smith"
+                                value={formData.nomComplet}
+                                onChange={handleChange}
                             />
                         </div>
 
@@ -63,8 +123,10 @@ const Register = () => {
                             </div>
                             <InputText
                                 type="text"
-                                name="address"
+                                name="adresse"
                                 placeholder="Ouagadougou secteur 04"
+                                value={formData.adresse}
+                                onChange={handleChange}
                             />
                         </div>
                     </div>
@@ -74,12 +136,14 @@ const Register = () => {
                         <div className="flex-1">
                             <div className="flex items-center gap-2 font-medium mb-2">
                                 <MailCheck size={18} />
-                                <Label label="Mail" />
+                                <Label label="Mail *" />
                             </div>
                             <InputText
                                 type="email"
-                                name="email"
+                                name="mail"
                                 placeholder="example@gami.com"
+                                value={formData.mail}
+                                onChange={handleChange}
                             />
                         </div>
 
@@ -90,50 +154,57 @@ const Register = () => {
                             </div>
                             <InputText
                                 type="tel"
-                                name="phone"
+                                name="telephone"
                                 placeholder="+226 00 00 00 00"
+                                value={formData.telephone}
+                                onChange={handleChange}
                             />
                         </div>
                     </div>
 
-                    {/* Pays  */}
-
+                    {/* Pays */}
                     <div className="flex-1">
-                            <div className="flex items-center gap-2 font-medium mb-2">
-                                <Globe size={18} />
-                                <Label label="Pays" />
-                            </div>
-                            <InputText
-                                type="text"
-                                name="country"
-                                placeholder="Burkina Faso"
-                            />
-                    </div>
-                    {/*  Préférence touristique */}
-                    <div className="flex-1">
-                            <div className="flex items-center gap-2 font-medium mb-2">
-                                <Compass size={18} />
-                                <Label label="Préférence touristique" />
-                            </div>
-                            <InputText
-                                type="text"
-                                name="preference"
-                                placeholder="Culturel, Historique"
-                            />
+                        <div className="flex items-center gap-2 font-medium mb-2">
+                            <Globe size={18} />
+                            <Label label="Pays" />
                         </div>
+                        <InputText
+                            type="text"
+                            name="pays"
+                            placeholder="Burkina Faso"
+                            value={formData.pays}
+                            onChange={handleChange}
+                        />
+                    </div>
 
-                    {/* Mot de passe + Confirmation */}
-                    
+                    {/* Préférence touristique */}
+                    <div className="flex-1">
+                        <div className="flex items-center gap-2 font-medium mb-2">
+                            <Compass size={18} />
+                            <Label label="Préférence touristique" />
+                        </div>
+                        <InputText
+                            type="text"
+                            name="preferenceTouristique"
+                            placeholder="Culturel, Historique"
+                            value={formData.preferenceTouristique}
+                            onChange={handleChange}
+                        />
+                    </div>
+
+                    {/* Mot de passe */}
                     <div>
                         <div className="flex items-center gap-2 font-medium mb-2">
                             <Lock size={18} />
-                            <Label label="Mot de passe" />
+                            <Label label="Mot de passe *" />
                         </div>
                         <div className="relative">
                             <InputText
                                 type={showPassword ? "text" : "password"}
-                                name="password"
+                                name="motDePasse"
                                 placeholder="••••••••"
+                                value={formData.motDePasse}
+                                onChange={handleChange}
                             />
                             <button
                                 type="button"
@@ -145,16 +216,19 @@ const Register = () => {
                         </div>
                     </div>
 
+                    {/* Confirmation mot de passe */}
                     <div>
                         <div className="flex items-center gap-2 font-medium mb-2">
                             <Lock size={18} />
-                            <Label label="Confirmer Mot de passe" />
+                            <Label label="Confirmer Mot de passe *" />
                         </div>
                         <div className="relative">
                             <InputText
                                 type={showPassword ? "text" : "password"}
-                                name="password"
+                                name="confirmMotDePasse"
                                 placeholder="••••••••"
+                                value={formData.confirmMotDePasse}
+                                onChange={handleChange}
                             />
                             <button
                                 type="button"
@@ -168,23 +242,20 @@ const Register = () => {
 
                     {/* Bouton animé */}
                     <motion.button
-                        whileHover={{ scale: 1.03 }}
-                        whileTap={{ scale: 0.97 }}
+                        whileHover={{ scale: loading ? 1 : 1.03 }}
+                        whileTap={{ scale: loading ? 1 : 0.97 }}
                         type="submit"
-                        onClick={handleSubmit}
+                        disabled={loading}
                         className="w-full py-3 rounded-xl font-semibold text-white bg-[#C45A1C]
-                                shadow-lg hover:shadow-orange-500/40 transition"
+                                shadow-lg hover:shadow-orange-500/40 transition disabled:opacity-60 disabled:cursor-not-allowed"
                     >
-                        Créer
+                        {loading ? "Création en cours..." : "Créer"}
                     </motion.button>
                 </form>
 
                 <p className="text-center text-gray-500 mt-6">
                     Déjà un compte ?{" "}
-                    <Link
-                        to="/login"
-                        className="text-orange-400 font-medium hover:underline"
-                    >
+                    <Link to="/login" className="text-orange-400 font-medium hover:underline">
                         Connectez-Vous
                     </Link>
                 </p>

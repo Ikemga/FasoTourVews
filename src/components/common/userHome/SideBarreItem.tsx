@@ -2,7 +2,8 @@ import {
     LayoutDashboard, Map, Mountain, CalendarCheck,
     CreditCard, Star, Globe, Megaphone,
     Settings,
-    Users
+    Users,
+    User2Icon
 } from "lucide-react";
 
 const SideBareItem = ({ activeItem = "Tableau de bord", onSelect}) => {
@@ -24,6 +25,7 @@ const SideBareItem = ({ activeItem = "Tableau de bord", onSelect}) => {
     { label: "Multilingue",  icon: Globe },
     { label: "Marketing",    icon: Megaphone },
     { label: "Paramètres", icon: Settings },
+    { label: "Profil", icon: User2Icon },
     ];
 
     const MenuItem = ({ item }) => {

@@ -1,19 +1,10 @@
 import Api from "./api/Api";
 
-export const getCircuit = () => Api.get("/circuits");
+// ── CRUD de base ──────────────────────────────────────────────────────────────
 
-export const getCircuitById = (id) => Api.get(`/circuits/${id}`);
-
-export const getSitesByPage = (page = 0, size = 10) =>
-    Api.get("/circuits/page", { params: { page, size } });
-
-export const getCircuitsByDateDesc = () => Api.get("/circuits/order/date/desc");
-export const getCircuitsByDateAsc  = () => Api.get("/circuits/order/date/asc");
-export const getCircuitsByNameAsc  = () => Api.get("/circuits/order/name/asc");
-export const getCircuitsByNameDesc = () => Api.get("/circuits/order/name/desc");
-
-export const searchCircuit = (query) =>
-    Api.get("/circuits/search", { params: { name: query } });
+export const getCircuit = ()                => Api.get("/circuits");
+export const getCircuitById = (id)          => Api.get(`/circuits/${id}`);
+export const getCircuitByName = (name)      => Api.get(`/circuits/name/${name}`);
 
 export const postCircuit = (formData) =>
     Api.post("/circuits", formData, {
@@ -26,3 +17,45 @@ export const putCircuit = (id, formData) =>
     });
 
 export const deleteCircuit = (id) => Api.delete(`/circuits/${id}`);
+
+// ── Pagination & Recherche ────────────────────────────────────────────────────
+
+export const getCircuitsByPage = (page = 0, size = 10) =>
+    Api.get("/circuits/page", { params: { page, size } });
+
+export const searchCircuit = (query) =>
+    Api.get("/circuits/search", { params: { name: query } });
+
+// ── Tri ───────────────────────────────────────────────────────────────────────
+
+export const getCircuitsByDateDesc = () => Api.get("/circuits/order/date/desc");
+export const getCircuitsByDateAsc  = () => Api.get("/circuits/order/date/asc");
+export const getCircuitsByNameAsc  = () => Api.get("/circuits/order/name/asc");
+export const getCircuitsByNameDesc = () => Api.get("/circuits/order/name/desc");
+
+// ── Filtres par statut ────────────────────────────────────────────────────────
+
+export const getCircuitsByStatut = (statut) =>
+    Api.get("/circuits", { params: { statut } });
+
+// Routes dédiées par statut
+export const getCircuitsActifs    = () => Api.get("/circuits/actifs");
+export const getCircuitsEnCours   = () => Api.get("/circuits/en-cours");
+export const getCircuitsClos      = () => Api.get("/circuits/clos");
+export const getCircuitsTermines  = () => Api.get("/circuits/termines");
+export const getCircuitsBrouillon = () => Api.get("/circuits/brouillons");
+
+// Route par path variable
+export const getCircuitsByStatutPath = (statut) =>
+    Api.get(`/circuits/statut/${statut}`);
+
+// ── Filtres par statut + tri par date ─────────────────────────────────────────
+
+export const getCircuitsByStatutRecent = (statut) =>
+    Api.get(`/circuits/statut/${statut}/recent`);
+
+export const getCircuitsByStatutAncien = (statut) =>
+    Api.get(`/circuits/statut/${statut}/ancien`);
+
+export const getCircuitsByAgence = (agenceId) =>
+    Api.get(`/circuits/agence/${agenceId}`);

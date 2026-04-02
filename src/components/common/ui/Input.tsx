@@ -51,7 +51,7 @@ const InputText = ({ ...props }) => {
             
             {...props}
             className="text-black w-full px-5 py-3 rounded-xl border border-gray-300
-                    outline-none focus:shadow-lg focus:border-primary
+                    outline-none focus:border-primary
                     transition"
         />
     );
@@ -148,22 +148,27 @@ const LogeTitle = ({ Title ="Title", Describe = "Describe" }) => {
     );
 };
 
-const InputHeure = ({ ...props }) => {
+const InputHoraire = ({ ouverture, fermeture, setOuverture, setFermeture }) => {
     return (
-        <div className="flex justify-center items-center text-black w-full px-5 py-3 rounded-xl border border-gray-300
-                    outline-none focus:shadow-lg focus:border-primary
-                    transition">
+        <div className="flex justify-between items-center text-black w-full px-4 py-2 rounded-xl border border-gray-300 focus-within:shadow-lg focus-within:border-primary transition gap-2">
             <input
-                {...props}
+                type="time"
+                name="ouverture"
+                value={ouverture}
+                onChange={(e) => setOuverture(e.target.value)}
+                className="flex-1 text-center bg-transparent outline-none"
             />
-            <p className=" text-xl font-bold"> - </p>
+            <span className="text-xl font-bold">-</span>
             <input
-                {...props}
+                type="time"
+                name="fermeture"
+                value={fermeture}
+                onChange={(e) => setFermeture(e.target.value)}
+                className="flex-1 text-center bg-transparent outline-none"
             />
         </div>
-        
     );
 };
 
 
-export { InputText, DateInput,Label, Textarea,LabelRequiert, PrixInput, SelectStatus, LogeTitle, InputHeure};
+export { InputText, DateInput,Label, Textarea,LabelRequiert, PrixInput, SelectStatus, LogeTitle, InputHoraire};

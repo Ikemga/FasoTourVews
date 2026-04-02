@@ -86,8 +86,41 @@ export const agencesColumns = [
   },
   { key: "mail",      label: "Email",       render: Renderers.muted },
   { key: "telephone",  label: "Téléphone",   render: Renderers.subtle },
-  { key: "numeroAgrement",  label: "Agrement",   render: Renderers.subtle },  
-  
+  { key: "numeroAgrement",  label: "Agrement",   render: Renderers.subtle },
   {key: "actif",label: "Statut",render: Renderers.boolStatut},
   { key: "createAt", label: "Créée le", render: Renderers.date },
 ];
+
+// ─── Couleurs statut réservation ──────────────────────────────────────────────
+const statutReservationColors = {
+    EN_ATTENTE: "border border-amber-300 text-amber-600 bg-amber-50",
+    CONFIRMEE:  "border border-emerald-300 text-emerald-600 bg-emerald-50",
+    PARTIELLE:  "border border-blue-300 text-blue-600 bg-blue-50",
+    ANNULEE:    "border border-red-300 text-red-500 bg-red-50",
+    EXPIREE:    "border border-gray-300 text-gray-500 bg-gray-100",
+};
+
+// ─── Colonnes de base (sans statut) ───────────────────────────────────────────
+const reservationsBaseColumns = [
+    { key: "nomComplet",         label: "Touriste",        accessor: (row) => row.nomComplet  ?? row.touriste?.nomComplet  ?? "—", render: Renderers.avatar },
+    { key: "reference",          label: "Référence",       cellClass: "px-5", headerClass: "px-5", render: Renderers.subtle },
+    { key: "circuitName",        label: "Circuit",         accessor: (row) => row.circuitName ?? row.circuit?.circuitName ?? "—", render: Renderers.muted  },
+    { key: "nombrePersonne",     label: "Personnes",       render: Renderers.subtle },
+    { key: "prixCircuit",        label: "Prix circuit",    accessor: (row) => row.prixCircuit  != null ? `${row.prixCircuit.toLocaleString("fr-FR")} FCFA`  : "—", render: Renderers.subtle },
+    { key: "montantTotal",       label: "Total",           accessor: (row) => row.montantTotal != null ? `${row.montantTotal.toLocaleString("fr-FR")} FCFA` : "—", render: Renderers.subtle },
+    { key: "dateResevation",     label: "Réservé le",      render: Renderers.date },
+    { key: "dateLimitePaiement", label: "Limite paiement", render: Renderers.date },
+];
+
+// ─── Toutes réservations (avec statut) ────────────────────────────────────────
+export const reservationsColumns = [
+    ...reservationsBaseColumns,
+    { key: "statut", label: "Statut", render: Renderers.badge(statutReservationColors) },
+];
+
+// ─── Par statut (sans colonne statut — redondant) ─────────────────────────────
+export const reservationsEnAttenteColumns  = [...reservationsBaseColumns];
+export const reservationsConfirmeesColumns = [...reservationsBaseColumns];
+export const reservationsPartiellesColumns = [...reservationsBaseColumns];
+export const reservationsAnnuleesColumns   = [...reservationsBaseColumns];
+export const reservationsExpireesColumns   = [...reservationsBaseColumns];

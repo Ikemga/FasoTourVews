@@ -1,10 +1,15 @@
 import { MapPin } from "lucide-react";
 import Badge from "./Badge";
 
+
+const getImageUrl = (image) => {
+    if (!image) return "/placeholder.jpg";
+    return `http://localhost:8080${image.split('/').map(segment => encodeURIComponent(segment)).join('/')}`;
+};
 const SiteHero = ({ site }) => (
     <div className="relative h-90 rounded-2xl overflow-hidden shadow-lg">
         <img
-            src={site.image ?? "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=900"}
+            src={getImageUrl(site.image)}
             alt=""
             className="w-full h-full object-cover"
         />

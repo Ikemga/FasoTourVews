@@ -120,7 +120,7 @@ const Sites = ({ onToggleSidebar }) => {
                 </div>
             )}
 
-            <div className="mx-5 grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="mx-5 grid sm:grid-cols-1 md:grid-cols-1 lg:grid-cols-3 gap-6">
                 {displayed.length === 0 ? (
                     <p className="text-gray-400 italic col-span-3 text-center py-10">
                         Aucun site disponible.
@@ -129,7 +129,7 @@ const Sites = ({ onToggleSidebar }) => {
                     displayed.map((site) => (
                         <SiteCard
                             key={site.id}
-                            imageSrc={site.image?.replace("https://fasotour.bf", "http://localhost:8080")}
+                            image={site.image?.replace("https://fasotour.bf", "http://localhost:8080")}
                             title={site.nom}
                             note={site.noteMoyenne}
                             description={site.description}
@@ -137,7 +137,10 @@ const Sites = ({ onToggleSidebar }) => {
                             categorie={site.categories?.map((cat, i) => (
                                 <Badge key={i} label={cat.categorie ?? cat.nom} />
                             ))}
-                            horaire={site.horaire}
+                            horaire={
+                                        site.heureOuverture && site.heureFermeture
+                                            ? `${site.heureOuverture} - ${site.heureFermeture}`
+                                            : "—"}
                             tarif={site.tarif}
                             onDelete={() => handleDelete(site.id)}
                             onDetail={() => setSelectedSite(site)}

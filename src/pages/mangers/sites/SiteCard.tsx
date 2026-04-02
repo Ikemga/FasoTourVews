@@ -1,12 +1,18 @@
 import { Star, MapPin, Trash2, Hourglass, Banknote, ChevronRight } from 'lucide-react';
 
 
-const SiteCard = ({ imageSrc, title, note, description,region, categorie,horaire,tarif, onDelete,onDetail }) => {
+const SiteCard = ({ image, title, note, description,region, categorie,horaire,tarif, onDelete,onDetail }) => {
 
         const handleDelete = (e) => {
             e.stopPropagation();
             onDelete();
         };
+
+        const getImageUrl = (image) => {
+          if (!image) return "/placeholder.jpg";
+          if (image.startsWith("http")) return image;
+          return `http://localhost:8080${image}`;
+      };
 
 
   return (
@@ -14,7 +20,7 @@ const SiteCard = ({ imageSrc, title, note, description,region, categorie,horaire
       <div className="relative h-64 w-full overflow-hidden">
         
         <img
-          src={imageSrc}
+          src={getImageUrl(image)}
           alt=""
           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
@@ -53,7 +59,7 @@ const SiteCard = ({ imageSrc, title, note, description,region, categorie,horaire
         <div  className="flex justify-between text-center items-center gap-1.5 py-2">
           <span className="flex justify-start text-center items-center gap-1.5 py-2">
             <Hourglass className="w-4 h-4 text-[#c1440e]" />
-              <span>{horaire} </span>
+              <span>{horaire ?? "-"} </span>
             </span>
             <button
               type="button"

@@ -1,35 +1,39 @@
-import { useState, useEffect } from "react";
-import ReservationHeader from "./component/ReservationHeader";
-import CircuitSummary    from "./component/CircuitSummary";
-import ReservationForm   from "./component/ReservationForm";
-import ReservationForms  from "./component/ReservationForms";
-import PaymentPage       from "./PaymentPage";
-import { postReservation } from "../../../service/ReservationService";
-import { getTouristes }    from "../../../service/TouristrService";
-
-const FRAIS_RESERVATION = 200;
+import { useState, useEffect }   from "react";
+import ReservationHeader         from "./component/ReservationHeader";
+import CircuitSummary            from "./component/CircuitSummary";
+import ReservationForm           from "./component/ReservationForm";
+import ReservationForms          from "./component/ReservationForms";
+import PaymentPage               from "./PaymentPage";
+import { postReservation }       from "../../../service/ReservationService";
+import { getTouristes }          from "../../../service/TouristrService";
+import { getFraisReservation }   from "../../../service/ConfigurationService";
 
 const ReservationPage = ({ circuit, onBack }) => {
 
     const [form, setForm] = useState({
-        nombrePersonne:     1,
-        dateResevation:     "",
-        dateLimitePaiement: "",
-        commentaire:        "",
-        statut:             "EN_ATTENTE",
-        touristeId:         "",
+        nombrePersonne: 1,
+        commentaire:    "",
+        touristeId:     "",
     });
 
-    const [touristes,     setTouristes]     = useState([]);
-    const [loading,       setLoading]       = useState(false);
-    const [error,         setError]         = useState(null);
-    const [showPayment,   setShowPayment]   = useState(false);
+    const [touristes,        setTouristes]        = useState([]);
+    const [loading,          setLoading]          = useState(false);
+    const [error,            setError]            = useState(null);
+    const [showPayment,      setShowPayment]      = useState(false);
+    const [montantAPayer,    setMontantAPayer]    = useState(0);
+    const [modePaiement,     setModePaiement]     = useState("frais");
+    const [reservationData,  setReservationData]  = useState(null);
+    const [fraisReservation, setFraisReservation] = useState(200);
 
-    // Montant choisi via PaymentOptions (transmis par ReservationForm)
-    const [montantAPayer, setMontantAPayer] = useState(FRAIS_RESERVATION);
-    const [modePaiement,  setModePaiement]  = useState("frais");
+    
+    /* ── Frais depuis le backend ── */
+    useEffect(() => {
+        getFraisReservation()
+            .then(res => setFraisReservation(res.data))
+            .catch(()  => setFraisReservation(200));
+    }, []);
 
-    /* ── Chargement des touristes ── */
+    /* ── Touristes ── */
     useEffect(() => {
         getTouristes()
             .then(res => {
@@ -40,15 +44,6 @@ const ReservationPage = ({ circuit, onBack }) => {
             .catch(err => console.error("Erreur chargement touristes", err));
     }, []);
 
-    useEffect(() => {
-        if (circuit?.dateLimitePaiement) {
-            setForm(prev => ({
-                ...prev,
-                dateLimitePaiement: circuit.dateLimitePaiement.slice(0, 10),
-            }));
-        }
-    }, [circuit]);
-
     const total = (circuit.prixIndividuel ?? 0) * form.nombrePersonne;
 
     const handleChange = (e) => {
@@ -56,33 +51,30 @@ const ReservationPage = ({ circuit, onBack }) => {
         setForm(prev => ({ ...prev, [name]: value }));
     };
 
-    /* ── handleSubmit reçoit { paiement, montantAPayer } depuis ReservationForm ── */
     const handleSubmit = async ({ paiement, montantAPayer: montant }) => {
         const circuitId  = circuit.id ?? circuit.circuitId ?? circuit.idCircuit;
-        const touristeId = Number(form.touristeId);
+        const touristeId = form.touristeId ? Number(form.touristeId) : null;
 
         if (!circuitId)  { setError("Identifiant du circuit introuvable."); return; }
         if (!touristeId) { setError("Veuillez sélectionner un touriste.");  return; }
 
         setError(null);
         setLoading(true);
-
-        // Sauvegarde pour PaymentPage
         setMontantAPayer(montant);
         setModePaiement(paiement.mode);
 
         const payload = {
-            nombrePersonne:  Number(form.nombrePersonne),
-            prixReservation: montant,          // montant réellement payé
-            commentaire:     form.commentaire,
-            statut:          form.statut,
+            nombrePersonne: Number(form.nombrePersonne),
+            commentaire:    form.commentaire,
             circuitId,
             touristeId,
-            paiementId:      null,
         };
 
         try {
-            await postReservation(payload);
+            const res = await postReservation(payload);
+            setReservationData(res.data);
+            setReservationData(res.data);
+                //
             setShowPayment(true);
         } catch (err) {
             setError(
@@ -95,15 +87,14 @@ const ReservationPage = ({ circuit, onBack }) => {
         }
     };
 
-    /* ── Page paiement ── */
     if (showPayment) {
         return (
             <PaymentPage
                 circuit={circuit}
-                reservationData={form}
+                reservationData={reservationData}
                 total={total}
-                montantAPayer={montantAPayer}   // ← montant choisi
-                modePaiement={modePaiement}     // ← "frais" | "total"
+                montantAPayer={montantAPayer}
+                modePaiement={modePaiement}
                 onBack={() => setShowPayment(false)}
                 onSuccess={onBack}
             />
@@ -115,7 +106,6 @@ const ReservationPage = ({ circuit, onBack }) => {
             <ReservationHeader circuit={circuit} onBack={onBack} />
             <div className="max-w-6xl mx-auto px-6 py-8 grid md:grid-cols-1 lg:grid-cols-3 gap-8">
 
-                {/* Colonne gauche */}
                 <div className="col-span-2 space-y-6">
                     <CircuitSummary circuit={circuit} />
                     <ReservationForms
@@ -127,7 +117,6 @@ const ReservationPage = ({ circuit, onBack }) => {
                     />
                 </div>
 
-                {/* Colonne droite */}
                 <ReservationForm
                     form={form}
                     handleSubmit={handleSubmit}
@@ -135,7 +124,9 @@ const ReservationPage = ({ circuit, onBack }) => {
                     circuit={circuit}
                     loading={loading}
                     error={error}
+                    fraisReservation={fraisReservation}
                 />
+                
             </div>
         </div>
     );

@@ -51,3 +51,8 @@ export const updateReservationStatus = (id, status) => {
 export const deleteReservation = (id) => {
     return Api.delete(`/reservations/${id}`);
 };
+
+export const getReservationsByRecent = () => Api.get("/reservations/recent");
+
+export const getReservationByStatut = (statut: string) =>
+    Api.get("/reservations/statut/alphabetical", { params: { statut } });

@@ -1,6 +1,6 @@
 import { X, CheckCircle, AlertCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { InputHeure, InputText, Label, LabelRequiert, PrixInput, Textarea } from "./Input";
+import { InputHoraire, InputText, Label, LabelRequiert, PrixInput, Textarea } from "./Input";
 import ImageUploadMultiple from "./ImageUploadMultiple";
 import VideoUploadMultiple from "./VideoUploadMultiple";
 import FileUploadMultiple from "./FileUploadMultiple";
@@ -8,8 +8,8 @@ import { useEffect, useState } from "react";
 import CategorieSelector from "./CategorieSelector";
 import { postSites } from "../../../service/SiteService";
 import { createPortal } from "react-dom";
+import SelectOption from "./SelectOption";
 
-// ✅ Composant Toast réutilisable
 const Toast = ({ message, type }) => (
     createPortal(
         <AnimatePresence>
@@ -37,11 +37,14 @@ const Toast = ({ message, type }) => (
     )
 );
 
-const AddSiteModal = ({ open, onClose, onSuccess }) => {
+const AddSiteModal = ({ open, onClose, onSuccess , initialData = null }) => {
     const [loading, setLoading]         = useState(false);
     const [error, setError]             = useState(null);
     const [success, setSuccess]         = useState(null);
     const [selectedCats, setSelectedCats] = useState([]);
+    const [statut, setStatut]             = useState(initialData?.statut ?? "Actif")
+    const [ouverture, setOuverture] = useState("08:00");
+    const [fermeture, setFermeture] = useState("17:00");
     const [photos, setPhotos]           = useState([]);
     const [videos, setVideos]           = useState([]);
     const [fichiers, setFichiers]       = useState([]);
@@ -64,40 +67,55 @@ const AddSiteModal = ({ open, onClose, onSuccess }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        const form = e.currentTarget;
+        const formData = new FormData();
+
+        const ouvertureVal = ouverture || form.heureOuverture?.value;
+        const fermetureVal = fermeture || form.heureFermeture?.value;
+
+        if (!ouvertureVal || !fermetureVal) {
+            setError("Les horaires sont requis.");
+            return;
+        }
+
         setLoading(true);
         setError(null);
         setSuccess(null);
 
-        const formData = new FormData(e.currentTarget);
+        formData.append("nom", form.nom.value);
+        formData.append("region", form.region.value);
+        formData.append("description", form.description.value);
+        formData.append("localisation", form.localisation.value);
+        formData.append("noteMoyenne", form.noteMoyenne.value || "");
+        formData.append("tarif", form.prix.value || "");
+        formData.append("statut", statut);
 
-        const payload = {
-            nom:          formData.get("nom"),
-            region:       formData.get("region"),
-            description:  formData.get("description"),
-            localisation: formData.get("localisation"),
-            noteMoyenne:  formData.get("noteMoyenne"),
-            categorieIds: selectedCats.map(c => c.id),
-            horaire:      formData.get("horaire"),
-            tarif:        formData.get("prix"),
-            statut:       formData.get("statut"),
-        };
+        formData.append("heureOuverture", ouvertureVal);
+        formData.append("heureFermeture", fermetureVal);
+
+        selectedCats.forEach(cat => {
+            formData.append("categorieIds", cat.id);
+        });
+
+        if (photos.length > 0) {
+            formData.append("image", photos[0]);
+        }
+
+        
+        videos.forEach(v => formData.append("videos", v));
+        fichiers.forEach(f => formData.append("fichiers", f));
 
         try {
-            await postSites(payload);
+            await postSites(formData);
             setSuccess("Site créé avec succès !");
-            setTimeout(() => {
-                setSuccess(null);
-                onSuccess?.();
-                onClose();
-            }, 2000);
+            setTimeout(() => { onSuccess?.(); onClose(); }, 2000);
         } catch (err) {
-            console.error("Erreur création site :", err);
-            setError(err.response?.data?.message || "Une erreur est survenue.");
+            setError(err.response?.data?.message || "Erreur.");
         } finally {
             setLoading(false);
         }
     };
-
     return (
         <>
             {/*Toasts via Portal */}
@@ -160,18 +178,28 @@ const AddSiteModal = ({ open, onClose, onSuccess }) => {
                                 </div>
 
                                 {/* Horaires + Tarif + Statut */}
-                                <div className="flex gap-4 items-end">
+                                <div className="relative w-full flex gap-4 items-end">
                                     <div className="flex-1">
-                                        <LabelRequiert label="Horaires" requiert="*" />
-                                        <InputHeure type="time" name="horaire" placeholder="17:00" />
+
+                                        <LabelRequiert 
+                                            label="Horaires"
+                                            requiert="*"
+                                                />
+                                        
+                                        <InputHoraire
+                                            ouverture={ouverture}
+                                            fermeture={fermeture}
+                                            setOuverture={setOuverture}
+                                            setFermeture={setFermeture}
+                                        />
                                     </div>
                                     <div className="flex-1">
                                         <Label label="Tarif" />
                                         <PrixInput name="prix" placeholder="500" />
                                     </div>
                                     <div className="flex-1">
-                                        <LabelRequiert label="Status" requiert="*" />
-                                        <InputText type="text" name="statut" placeholder="Actif" />
+                                        <Label label="Statut" />
+                                        <SelectOption value={statut} onChange={setStatut} />
                                     </div>
                                 </div>
 

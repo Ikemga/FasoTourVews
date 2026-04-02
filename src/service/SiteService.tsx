@@ -35,15 +35,22 @@ export const getSitesAlphabetical = () => {
 export const searchSites = (query) => {
     return Api.get(`/sites/search?q=${query}`);
 };
-
 // POST
-export const postSites = (site) => {
-    return Api.post("/sites", site);
+export const postSites = (data) => {
+    return Api.post("/sites", data, {
+        headers: {
+            "Content-Type": "multipart/form-data"
+        }
+    });
 };
 
 // PUT
-export const putSites = (id,site) => {
-    return Api.put(`/sites/${id}`, site);
+export const putSites = (id, data) => {
+    return Api.put(`/sites/${id}`, data, {
+        headers: {
+            "Content-Type": "multipart/form-data"
+        }
+    });
 };
 
 // DELETE

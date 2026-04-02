@@ -1,17 +1,21 @@
 import { useState } from "react";
 
-const FRAIS_RESERVATION = 200;
+
 
 const PaymentOptions = ({
     total          ,
     nombrePersonne,
     prixIndividuel,
+    fraisReservation,
     onSelect,
 }) => {
+
     const [selected, setSelected] = useState("frais");
 
-    const montantFrais = FRAIS_RESERVATION;
-    const montantTotal = total + FRAIS_RESERVATION;
+    const montantFrais = fraisReservation;
+    const montantTotal = total + fraisReservation;
+
+
 
     const handleSelect = (mode) => {
         setSelected(mode);
@@ -27,7 +31,7 @@ const PaymentOptions = ({
                 nombrePersonne,
                 prixIndividuel,
                 totalCircuit: total,
-                frais: FRAIS_RESERVATION,
+                frais: fraisReservation,
             }
         });
     };
@@ -40,8 +44,8 @@ const PaymentOptions = ({
                 selected={selected === "frais"}
                 onClick={() => handleSelect("frais")}
                 title="Frais de réservation uniquement"
-                badge="Recommandé"
-                amount={`${FRAIS_RESERVATION.toLocaleString("fr-FR")} FCFA`}
+                badge="Uniquement les frais"
+                amount={`${fraisReservation.toLocaleString("fr-FR")} FCFA`}
                 description={
                     <>
                         Payez les frais maintenant et le reste avant le départ.<br />
@@ -54,6 +58,7 @@ const PaymentOptions = ({
                 selected={selected === "total"}
                 onClick={() => handleSelect("total")}
                 title="Paiement intégral"
+                badge="Recommandé"
                 amount={`${montantTotal.toLocaleString("fr-FR")} FCFA`}
                 description={
                     <>

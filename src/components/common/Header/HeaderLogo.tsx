@@ -8,7 +8,7 @@ const HeaderLogo = () => {
       </div>
       <h3 className="font-bold text-xl leading-none">
         <span className="text-white">Faso</span>
-        <span className="text-primary">Tour</span>
+        <span className="text-primary">Guide</span>
       </h3>
     </div>
   );

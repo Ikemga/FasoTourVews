@@ -8,12 +8,12 @@ const toArray = (data) => {
 };
 
 const SpecifiqueRechercheBarre = ({
-  searchFn,
-  data = [],
-  searchKeys = ["nom"],
-  onResults,
-  placeholder = "Rechercher...",
-}) => {
+    searchFn,
+    data = [],
+    searchKeys = ["nom"],
+    onResults,
+    placeholder = "Rechercher...",
+  }) => {
   const [query, setQuery] = useState("");
 
   const onResultsRef = useRef(onResults);

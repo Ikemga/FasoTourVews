@@ -1,12 +1,21 @@
+import { Search } from "lucide-react";
+
 const RechercheBarre = ({ value, onChange }) => {
   return (
-    <input
+    <div className="relative w-lg">
+      <Search
+        className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+        size={18}
+      />
+      <input
       type="text"
-      placeholder="Rechercher par nom, email, téléphone, rôle..."
+      placeholder="Rechercher par ..."
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="flex-1 px-4 py-2 text-sm border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+      className="text-black w-full pl-11 pr-5 py-3 rounded-xl border border-gray-300 outline-none focus:border-primary focus:shadow-sm focus:shadow-orange-500/40 transition"
     />
+    </div>
+    
   );
 };
 

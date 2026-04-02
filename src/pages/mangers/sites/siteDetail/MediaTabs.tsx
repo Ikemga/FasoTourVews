@@ -33,9 +33,17 @@ const MediaTabs = ({ site }) => {
                 ))}
             </div>
 
-            {tab === "photos"   && <PhotoGallery images={site.images   ?? []} />}
-            {tab === "videos"   && <VideoGallery videos={site.videos   ?? []} />}
-            {tab === "fichiers" && <FichierList  fichiers={site.fichiers ?? []} />}
+            {tab === "photos" && (
+                <PhotoGallery
+                    images={
+                        site.photos?.length   ? site.photos   :   // objets [{url, ...}]
+                        site.images?.length   ? site.images   :   // strings ou objets
+                        []
+                    }
+                />
+)}
+            {tab === "videos"   && <VideoGallery  videos={site.videos   ?? []} />}
+            {tab === "fichiers" && <FichierList   fichiers={site.fichiers ?? []} />}
         </div>
     );
 };

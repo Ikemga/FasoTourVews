@@ -4,7 +4,7 @@ import SpecifiqueRechercheBarre from "../../../components/common/ui/SpecifiqueRe
 import HeaderTitle from "../../../components/common/utilitaire/HeaderTitle";
 import { useCallback, useEffect, useState } from "react";
 import AddCircuitModal from "../../../components/common/ui/AddCircuitModal";
-import { deleteCircuit, getCircuitsByDateDesc, searchCircuit } from "../../../service/CircuitService";
+import { deleteCircuit, getCircuitsByDateDesc, getCircuitsByStatutRecent, searchCircuit } from "../../../service/CircuitService";
 import CircuitsCard from "./CircuitsCard";
 import CircuitDetail from "./circuitDetail/CircuitDetail";
 import ReservationPage from "../Reservation/ReservationPage";
@@ -26,7 +26,8 @@ const Circuits = ({ onToggleSidebar }) => {
     const fetchCircuits = async () => {
         setLoading(true);
         try {
-            const response = await getCircuitsByDateDesc();
+            const response = await getCircuitsByStatutRecent("ACTIF");
+
             const data = response.data;
 
             const liste = Array.isArray(data)
@@ -145,7 +146,7 @@ const Circuits = ({ onToggleSidebar }) => {
             )}
 
             {/* Grille de cartes */}
-            <div className="mx-5 grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="mx-5 grid sm:grid-cols-1 md:grid-cols-1 lg:grid-cols-3 gap-4">
                 {displayed.length === 0 ? (
                     <p className="text-gray-400 italic col-span-3 text-center py-10">
                         Aucun circuit disponible.

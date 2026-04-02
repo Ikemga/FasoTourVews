@@ -5,6 +5,8 @@ import Dashboad from "./dashboad/Dashboad";
 import Circuits from "./mangers/circuits/Circuits";
 import Sites from "./mangers/sites/Sites";
 import Utiliisateurs from "./mangers/users/Utiliisateurs";
+import AllReservation from "./mangers/Reservation/AllReservation";
+import UserProfile from "./mangers/userprofil/UserProfile";
 
 
 const IndexP = () => {
@@ -23,12 +25,13 @@ const IndexP = () => {
                 <main className="ml-64 overflow-auto min-h-screen w-full">
                     {page === "Tableau de bord" && <Dashboad />}
                     {page === "Circuits" && <Circuits />}
-                    {page === "Sites touristiques" && <Sites/>}
+                    {page === "Sites touristiques" && <Sites />}
                     {page === "Utilisateurs" && <Utiliisateurs />}
-                    {page === "Réservation" && <div className="p-10">Page Réservation</div>}
+                    {page === "Réservations" && <AllReservation />}
                     {page === "Paiements" && <div className="p-10">Page Paiements</div>}
                     {page === "Avis & Notes" && <div className="p-10">Avis & Notes</div>}
                     {page === "" && <div className="p-10">Avis & Notes</div>}
+                    {page === "Profil" && <UserProfile />}
 
                     
                 </main>

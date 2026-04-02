@@ -6,8 +6,7 @@ import CategoryCard               from "./component/paie/CategoryCard";
 import MobileMoneyPanel           from "./component/paie/MobileMoneyPanel";
 import CarteBancairePanel         from "./component/paie/CarteBancairePanel";
 import VirementPanel              from "./component/paie/VirementPanel";
-
-const FRAIS_RESERVATION = 200;
+import { createPaiement } from "../../../service/PaiementService";
 
 const PaymentPage = ({
     circuit,
@@ -18,6 +17,10 @@ const PaymentPage = ({
     onBack,
     onSuccess,
 }) => {
+
+    const montantTotal     = reservationData?.montantTotal     ?? 0;
+    const montant = montantAPayer ?? montantTotal ?? (total + fraisReservation) ?? 0;
+    const fraisReservation = reservationData?.fraisReservation ?? 0;
     const [category, setCategory] = useState("mobile");
     const [operator, setOperator] = useState("orange");
     const [phone,    setPhone]    = useState("");
@@ -33,16 +36,34 @@ const PaymentPage = ({
         category === "carte"  ? "Carte bancaire" :
         "Virement";
 
-    const handlePay = async () => {
-        if (category === "mobile" && phone.replace(/\s/g, "").length < 8) {
+
+        const handlePay = async () => {
+            console.log("montant =", montant);
+            console.log("montantAPayer prop =", montantAPayer);
+            console.log("reservationData =", reservationData);
+                if (category === "mobile" && phone.replace(/\s/g, "").length < 8) {
             setError("Veuillez entrer un numéro valide.");
             return;
         }
+
         setError(null);
         setLoading(true);
-        await new Promise(r => setTimeout(r, 1800));
-        setLoading(false);
-        setStep("done");
+
+        try {
+            await createPaiement({
+                reservationId: reservationData?.id,
+                montantPaye:   montantAPayer,
+            });
+
+            setStep("done");
+
+        } catch (err) {
+            const message = err?.response?.data?.message
+                ?? "Une erreur est survenue lors du paiement. Veuillez réessayer.";
+            setError(message);
+        } finally {
+            setLoading(false);
+        }
     };
 
     if (step === "done") {
@@ -50,7 +71,7 @@ const PaymentPage = ({
             <PaymentSuccess
                 circuit={circuit}
                 reservationData={reservationData}
-                total={montantAPayer}   // affiche ce qui a réellement été payé
+                total={montantAPayer}
                 methodLabel={methodLabel}
                 phone={phone}
                 holder={holder}
@@ -106,16 +127,34 @@ const PaymentPage = ({
                 {category === "carte"    && <CarteBancairePanel holder={holder} setHolder={setHolder} />}
                 {category === "virement" && <VirementPanel circuit={circuit} />}
 
-                {/* Récapitulatif — affiche le bon montant selon l'option choisie */}
+                {/* Récapitulatif */}
                 <div className="bg-white rounded-2xl p-5 shadow-sm space-y-2">
                     <div className="flex justify-between items-center text-sm text-gray-500">
-                        <span>{reservationData?.nombrePersonne} × {circuit?.prixIndividuel?.toLocaleString("fr-FR")} FCFA</span>
-                        <span className="font-semibold text-gray-800">{total?.toLocaleString("fr-FR")} FCFA</span>
+                        <span>
+                            {reservationData?.nombrePersonne} × {circuit?.prixIndividuel?.toLocaleString("fr-FR")} FCFA
+                        </span>
+                        <span className="font-semibold text-gray-800">
+                            {total?.toLocaleString("fr-FR")} FCFA
+                        </span>
                     </div>
                     <div className="flex justify-between items-center text-sm text-gray-500">
                         <span>Frais de réservation</span>
-                        <span className="font-semibold text-[#08a103]">{FRAIS_RESERVATION.toLocaleString("fr-FR")} FCFA</span>
+                        {fraisReservation != null ? (
+                            <span className="font-semibold text-[#08a103]">
+                                {fraisReservation.toLocaleString("fr-FR")} FCFA
+                            </span>
+                        ) : (
+                            <span className="inline-block w-20 h-4 bg-gray-200 rounded animate-pulse" />
+                        )}
                     </div>
+                    
+                    <div className="flex justify-between items-center text-sm text-gray-500">
+                        <span>Montant total</span>
+                        <span className="font-semibold text-gray-800">
+                            {montantTotal.toLocaleString("fr-FR")} FCFA
+                        </span>
+                    </div>
+
                     <div className="flex justify-between items-center border-t border-dashed border-black/10 pt-3">
                         <span className="text-sm text-gray-500">
                             {modePaiement === "frais" ? "Vous payez maintenant" : "Total à payer"}
@@ -126,7 +165,7 @@ const PaymentPage = ({
                     </div>
                 </div>
 
-                {/* Erreur */}
+                {/*Erreur API ou validation */}
                 {error && (
                     <p className="text-sm text-red-500 bg-red-50 border border-red-100 px-4 py-3 rounded-xl">
                         {error}
