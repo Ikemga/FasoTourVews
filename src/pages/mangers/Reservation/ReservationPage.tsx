@@ -1,4 +1,6 @@
-import { useState, useEffect }   from "react";
+// ReservationPage.jsx
+
+import { useState, useEffect, useCallback } from "react";
 import ReservationHeader         from "./component/ReservationHeader";
 import CircuitSummary            from "./component/CircuitSummary";
 import ReservationForm           from "./component/ReservationForm";
@@ -7,6 +9,7 @@ import PaymentPage               from "./PaymentPage";
 import { postReservation }       from "../../../service/ReservationService";
 import { getTouristes }          from "../../../service/TouristrService";
 import { getFraisReservation }   from "../../../service/ConfigurationService";
+import AddTouriste               from "../../../components/common/ui/AddTouriste";
 
 const ReservationPage = ({ circuit, onBack }) => {
 
@@ -25,6 +28,23 @@ const ReservationPage = ({ circuit, onBack }) => {
     const [reservationData,  setReservationData]  = useState(null);
     const [fraisReservation, setFraisReservation] = useState(200);
     const [formErrors,       setFormErrors]       = useState({});
+    const [openAddTouriste,  setOpenAddTouriste]  = useState(false);
+
+    const isAdminOrAgence = ["ADMIN", "AGENCE"].includes(localStorage.getItem("role"));
+
+    const chargerTouristes = useCallback(() => {
+        return getTouristes()
+            .then(res => {
+                const data  = res.data;
+                const liste = Array.isArray(data) ? data : data.content ?? data.data ?? [];
+                setTouristes(liste);
+                return liste;
+            })
+            .catch(err => {
+                console.error("Erreur chargement touristes", err);
+                return [];
+            });
+    }, []);
 
     useEffect(() => {
         getFraisReservation()
@@ -33,20 +53,13 @@ const ReservationPage = ({ circuit, onBack }) => {
     }, []);
 
     useEffect(() => {
-        const role = localStorage.getItem("role");
-        if (role === "ADMIN" || role === "AGENCE") {
-            getTouristes()
-                .then(res => {
-                    const data  = res.data;
-                    const liste = Array.isArray(data) ? data : data.content ?? data.data ?? [];
-                    setTouristes(liste);
-                })
-                .catch(err => console.error("Erreur chargement touristes", err));
+        if (isAdminOrAgence) {
+            chargerTouristes();
         } else {
             const touristeId = localStorage.getItem("userId");
             if (touristeId) setForm(prev => ({ ...prev, touristeId }));
         }
-    }, []);
+    }, [chargerTouristes]);
 
     const total = (circuit?.prixIndividuel ?? 0) * form.nombrePersonne;
 
@@ -67,6 +80,39 @@ const ReservationPage = ({ circuit, onBack }) => {
         setFormErrors(errs);
         return Object.keys(errs).length === 0;
     };
+
+    // ── ✅ MODIFIÉ : setTouristes + setForm dans le même .then() ─────────────
+    const handleTouristeCreated = (nouveauTouriste) => {
+        setOpenAddTouriste(false);
+
+        getTouristes()
+            .then(res => {
+                const data  = res.data;
+                const liste = Array.isArray(data) ? data : data.content ?? data.data ?? [];
+
+                const id =
+                    nouveauTouriste?.id         ??
+                    nouveauTouriste?.touristeId ??
+                    nouveauTouriste?.idTouriste;
+
+                const trouve  = liste.find(t => String(t.id) === String(id));
+                const idFinal = trouve?.id ?? id;
+
+                // ✅ Même .then() = même batch React = un seul re-render
+                // La liste est à jour ET le touriste est sélectionné simultanément
+                setTouristes(liste);
+                if (idFinal) {
+                    setForm(prev => ({ ...prev, touristeId: String(idFinal) }));
+                    setFormErrors(prev => {
+                        const next = { ...prev };
+                        delete next.touristeId;
+                        return next;
+                    });
+                }
+            })
+            .catch(err => console.error("Erreur rechargement touristes", err));
+    };
+    // ─────────────────────────────────────────────────────────────────────────
 
     const handleSubmit = async ({ paiement, montantApayer: montant }) => {
         if (!valider()) return;
@@ -92,7 +138,7 @@ const ReservationPage = ({ circuit, onBack }) => {
         try {
             const res = await postReservation(payload);
             setReservationData(res.data);
-            setShowPayment(true);        // ← ouvre le drawer
+            setShowPayment(true);
         } catch (err) {
             setError(
                 err.response?.data?.message
@@ -120,6 +166,7 @@ const ReservationPage = ({ circuit, onBack }) => {
                         touristes={touristes}
                         errors={formErrors}
                         setErrors={setFormErrors}
+                        onAddTouriste={isAdminOrAgence ? () => setOpenAddTouriste(true) : undefined}
                     />
                 </div>
 
@@ -140,7 +187,6 @@ const ReservationPage = ({ circuit, onBack }) => {
                 </div>
             </div>
 
-            {/* ── Drawer paiement côté droit ── */}
             {showPayment && (
                 <>
                     <div
@@ -160,6 +206,15 @@ const ReservationPage = ({ circuit, onBack }) => {
                         />
                     </div>
                 </>
+            )}
+
+            {isAdminOrAgence && (
+                <AddTouriste
+                    open={openAddTouriste}
+                    onClose={() => setOpenAddTouriste(false)}
+                    onSuccess={handleTouristeCreated}
+                    initialData={null}
+                />
             )}
         </div>
     );

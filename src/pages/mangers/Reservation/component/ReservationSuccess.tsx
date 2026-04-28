@@ -12,7 +12,7 @@ const ReservationSuccess = ({ circuit, onBack }) => (
 
         <button
             onClick={onBack}
-            className="bg-[#c1440e] text-white px-6 py-2 rounded flex gap-2"
+            className="bg-[#c1440e] text-white px-6 py-2 rounded flex gap-2"c1440e
         >
             <ArrowLeft size={16} />
             Retour

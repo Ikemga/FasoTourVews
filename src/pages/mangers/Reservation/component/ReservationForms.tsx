@@ -1,4 +1,4 @@
-import { Users, MessageSquare, UserCircle, AlertCircle } from "lucide-react";
+import { Users, MessageSquare, UserCircle, AlertCircle, UserPlus } from "lucide-react";
 import { useEffect } from "react";
 
 const ReservationForms = ({
@@ -7,8 +7,9 @@ const ReservationForms = ({
     handleChange,
     circuit,
     touristes = [],
-    errors    = {},
+    errors = {},
     setErrors = () => {},
+    onAddTouriste,
 }) => {
 
     useEffect(() => {
@@ -19,7 +20,6 @@ const ReservationForms = ({
 
     const maxPersonnes = circuit?.nombreRestant ?? 99;
 
-    // Rôle depuis localStorage
     const role = localStorage.getItem("role");
     const isAdminOrAgence = role === "ADMIN" || role === "AGENCE";
 
@@ -27,32 +27,51 @@ const ReservationForms = ({
         <div className="py-4 space-y-5">
             <h2 className="text-lg font-bold text-gray-800">Détails de la réservation</h2>
 
-            {/* ── Sélecteur touriste — visible uniquement pour ADMIN et AGENCE ── */}
             {isAdminOrAgence && (
                 <div>
                     <label className="text-sm text-gray-500 flex items-center gap-1.5 mb-1.5">
                         <UserCircle className="w-4 h-4" /> Touriste
                     </label>
-                    <select
-                        name="touristeId"
-                        value={form.touristeId}
-                        onChange={handleChange}
-                        className={`w-full border rounded-xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#c1440e]/30 focus:border-[#c1440e] transition ${
-                            errors.touristeId ? "border-red-400" : "border-gray-200"
-                        }`}
-                    >
-                        <option value="">-- Sélectionner un touriste --</option>
-                        {touristes.map(t => (
-                            <option key={t.id} value={t.id}>
-                                {t.nomComplet ?? t.nom ?? `Touriste #${t.id}`}
-                            </option>
-                        ))}
-                    </select>
+
+                    <div className="flex gap-2 items-stretch">
+                        <select
+                            name="touristeId"
+                            value={form.touristeId || ""}
+                            onChange={handleChange}
+                            className={`flex-1 border rounded-xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#c1440e]/30 focus:border-[#c1440e] transition ${
+                                errors.touristeId ? "border-red-400" : "border-gray-200"
+                            }`}
+                        >
+                            <option value="">-- Sélectionner un touriste --</option>
+
+                            {Array.isArray(touristes) &&
+                                touristes
+                                    .filter(t => t && t.id)
+                                    .map((t) => (
+                                        <option key={t.id} value={t.id}>
+                                            {t.nomComplet ?? t.nom ?? `Touriste #${t.id}`}
+                                        </option>
+                                    ))
+                            }
+                        </select>
+
+                        {onAddTouriste && (
+                            <button
+                                type="button"
+                                onClick={onAddTouriste}
+                                title="Créer un nouveau touriste"
+                                className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-dashed border-[#c1440e] text-[#c1440e] text-sm font-medium hover:bg-[#c1440e]/5 transition whitespace-nowrap"
+                            >
+                                <UserPlus className="w-4 h-4" />
+                                Nouveau
+                            </button>
+                        )}
+                    </div>
+
                     <ErrorMessage message={errors.touristeId} />
                 </div>
             )}
 
-            {/* ── Nombre de personnes ── */}
             <div>
                 <label className="text-sm text-gray-500 flex items-center gap-1.5 mb-2">
                     <Users className="w-4 h-4" /> Nombre de personnes
@@ -61,46 +80,58 @@ const ReservationForms = ({
                 <div className="flex gap-3 items-center">
                     <CounterButton
                         onClick={() =>
-                            setForm(p => ({ ...p, nombrePersonne: Math.max(1, p.nombrePersonne - 1) }))
+                            setForm(p => ({
+                                ...p,
+                                nombrePersonne: Math.max(1, (p.nombrePersonne || 1) - 1)
+                            }))
                         }
                         disabled={form.nombrePersonne <= 1}
                         label="−"
                     />
+
                     <span className="text-xl font-bold w-6 text-center">
-                        {form.nombrePersonne}
+                        {form.nombrePersonne || 1}
                     </span>
+
                     <CounterButton
                         onClick={() =>
-                            setForm(p => ({ ...p, nombrePersonne: Math.min(maxPersonnes, p.nombrePersonne + 1) }))
+                            setForm(p => ({
+                                ...p,
+                                nombrePersonne: Math.min(
+                                    maxPersonnes,
+                                    (p.nombrePersonne || 1) + 1
+                                )
+                            }))
                         }
                         disabled={form.nombrePersonne >= maxPersonnes}
                         label="+"
                     />
+
                     <span className="text-sm text-gray-400">max {maxPersonnes}</span>
                 </div>
+
                 <ErrorMessage message={errors.nombrePersonne} />
             </div>
 
-            {/* ── Commentaire ── */}
             <div>
                 <label className="text-sm text-gray-500 flex items-center gap-1.5 mb-1.5">
                     <MessageSquare className="w-4 h-4" /> Commentaire (optionnel)
                 </label>
+
                 <textarea
                     name="commentaire"
-                    value={form.commentaire}
+                    value={form.commentaire || ""}
                     onChange={handleChange}
                     rows={3}
                     placeholder="Besoins spéciaux, allergies, demandes particulières..."
                     className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm bg-white resize-none focus:outline-none focus:ring-2 focus:ring-[#c1440e]/30 focus:border-[#c1440e]"
                 />
+
                 <ErrorMessage message={errors.commentaire} />
             </div>
         </div>
     );
 };
-
-/* ── Sous-composants ── */
 
 const ErrorMessage = ({ message }) => {
     if (!message) return null;
