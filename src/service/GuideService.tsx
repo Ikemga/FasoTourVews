@@ -31,3 +31,14 @@ export const deleteGuide = (id) => {
 export const toggleGuide = (id) => {
     return Api.patch(`${BASE}/${id}/toggle`);
 };
+
+// Get par Agence----------------------------
+
+
+export const getMesGuides = () => {
+    return Api.get(`${BASE}/my/guides`);
+};
+
+export const getMesGuidesStats = () => {
+    return Api.get(`${BASE}/my/guides/stats`);
+};

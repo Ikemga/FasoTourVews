@@ -26,6 +26,16 @@ export const getSitesByPage = (page = 0, size = 10) => {
     });
 };
 
+// GET /sites/by/categorie → [{ categorie: "Culturel", nombre: 14 }, ...]
+export const getSitesParCategorie = () => {
+    return Api.get("/sites/by/categorie");
+};
+
+// GET /sites/categorie/{categorie} → liste des sites d'une catégorie précise
+export const getSitesByCategorie = (categorie) => {
+    return Api.get(`/sites/categorie/${categorie}`);
+};
+
 export const getSitesAlphabetical = () => {
     return Api.get("/sites/alphabetical");
 };

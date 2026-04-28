@@ -1,27 +1,34 @@
-import { getRole } from "../token/TokenService";
-
-
-type Role = "ADMIN" | "AGENCE" | "TOURISTE" | "GUIDE";
+import { useState, useEffect } from "react";
+import { getNomComplet, getRole } from "../token/TokenService";
 
 export const useAuth = () => {
-  const role = getRole() as Role | null;
+    const [nomComplet, setNomComplet] = useState(getNomComplet());
+    const [role, setRole]             = useState(getRole());
 
-  const hasRole = (...roles: Role[]) => roles.includes(role as Role);
+    useEffect(() => {
+        // Relit le localStorage si la page est déjà chargée
+        setNomComplet(getNomComplet());
+        setRole(getRole());
+    }, []);
 
-  const can = {
-    // Calqué exactement sur ton SecurityConfigSpring
-    manageRoles:      hasRole("ADMIN"),
-    manageCategories: hasRole("ADMIN"),
-    manageCircuits:   hasRole("ADMIN", "AGENCE"),
-    manageSites:      hasRole("ADMIN", "AGENCE"),
-    manageReservations: hasRole("ADMIN", "TOURISTE", "GUIDE", "AGENCE"),
-    managePaiements:  hasRole("ADMIN", "TOURISTE", "GUIDE", "AGENCE"),
-    manageAvis:       hasRole("ADMIN", "TOURISTE", "GUIDE", "AGENCE"),
-    viewGuides:       hasRole("ADMIN", "GUIDE", "AGENCE"),
-    viewAgences:      hasRole("ADMIN", "AGENCE"),
-    viewTouristes:    hasRole("ADMIN", "TOURISTE"),
-    isAdmin:          hasRole("ADMIN"),
-  };
+    const hasRole = (...roles) => roles.includes(role);
 
-  return { role, hasRole, can };
+    const can = {
+        manageRoles:        hasRole("ADMIN"),
+        manageCategories:   hasRole("ADMIN"),
+        manageLangues:      hasRole("ADMIN"),
+        manageGuide:        hasRole("AGENCE"),
+        manageSites:        hasRole("ADMIN", "AGENCE","TOURISTE", "GUIDE"),
+        manageCircuits:     hasRole("ADMIN", "AGENCE","TOURISTE", "GUIDE"),
+        manageReservations: hasRole("ADMIN", "AGENCE", "TOURISTE", "GUIDE"),
+        managePaiements:    hasRole("ADMIN", "AGENCE", "TOURISTE", "GUIDE"),
+        manageAvis:         hasRole("ADMIN", "AGENCE", "TOURISTE", "GUIDE"),
+        viewDashboard:      hasRole("ADMIN", "AGENCE"),
+        viewGuides:         hasRole("ADMIN", "GUIDE", "AGENCE"),
+        viewAgences:        hasRole("ADMIN", "AGENCE"),
+        viewTouristes:      hasRole("ADMIN", "TOURISTE"),
+        isAdmin:            hasRole("ADMIN"),
+    };
+
+    return { role, nomComplet, hasRole, can };
 };

@@ -1,7 +1,8 @@
 import { useEffect, useState }          from "react";
-import { deleteReservation, getReservationByStatut }            from "../../../../service/ReservationService";
+import { annuleeReservation, getMesReservations, getReservationByStatut }            from "../../../../service/ReservationService";
 import DataTable                        from "../../../../components/common/ui/DataTable";
 import {reservationsPartiellesColumns }  from "../../../../components/common/ui/tableConfigs";
+import ReservationDetailDrawer from "./ReservationDetailDrawer";
 
 const PartielleListe = () => {
 
@@ -9,6 +10,7 @@ const PartielleListe = () => {
     const [loading,        setLoading]        = useState(true);
     const [error,          setError]          = useState(null);
     const [successMessage, setSuccessMessage] = useState("");
+    const [selectedRow,    setSelectedRow]    = useState<any>(null); 
 
     const showSuccess = (message: string) => {
         setSuccessMessage(message);
@@ -16,22 +18,35 @@ const PartielleListe = () => {
     };
 
     useEffect(() => {
-        getReservationByStatut("PARTIELLE")
-            .then(res  => setReservations(res.data))
-            .catch(()  => setError("Impossible de charger les réservations partielles."))
-            .finally(() => setLoading(false));
-    }, []);
+            const role = localStorage.getItem("role");
+        
+            const apiCall =
+                role?.includes("AGENCE")
+                    ? getMesReservations("PARTIELLE")
+                    : getReservationByStatut("PARTIELLE");
+        
+            apiCall
+                .then(res => setReservations(res.data))
+                .catch(() => setError("Impossible de charger les réservations annulées."))
+                .finally(() => setLoading(false));
+        
+        }, []);
 
-    const handleDelete = async (row: any) => {
-        if (!confirm("Supprimer cette réservation ?")) return;
-        try {
-            await deleteReservation(row.id);
-            setReservations((prev: any[]) => prev.filter((r) => r.id !== row.id));
-            showSuccess("Réservation supprimée avec succès !");
-        } catch (err) {
-            console.error("Erreur lors de la suppression :", err);
-        }
-    };
+    const handleCancel = async (row: any) => {
+            if (!confirm("Voulez-vous vraiment annuler cette réservation ?")) return;
+            try {
+                await annuleeReservation(row.id);
+                // Met à jour le statut localement sans recharger
+                setReservations((prev: any[]) =>
+                    prev.map((r: any) =>
+                        r.id === row.id ? { ...r, statut: "ANNULEE" } : r
+                    )
+                );
+                showSuccess("Réservation annulée avec succès !");
+            } catch (err) {
+                console.error("Erreur lors de l'annulation :", err);
+            }
+        };
 
     return (
         <div className="p-6">
@@ -67,10 +82,19 @@ const PartielleListe = () => {
                     rows={reservations}
                     columns={reservationsPartiellesColumns}
                     onView={(row)   => console.log("voir", row)}
-                    onDelete={handleDelete}
+                    onCancel={handleCancel}
                     emptyText="Aucune réservation partielles."
                 />
             )}
+
+            {/* Drawer détail */}
+            <ReservationDetailDrawer
+                reservation={selectedRow}
+                onClose={() => setSelectedRow(null)}
+                onCancel={(row) => {
+                    handleCancel(row);
+                }}
+            />
         </div>
     );
 };

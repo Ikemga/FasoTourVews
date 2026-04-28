@@ -8,10 +8,15 @@ const MediaTabs = ({ site }) => {
     const [tab, setTab] = useState("photos");
 
     const tabs = [
-        { key: "photos",   label: "Photos",   icon: Image },
-        { key: "videos",   label: "Vidéos",   icon: Film },
-        { key: "fichiers", label: "Fichiers",  icon: FileText },
+        { key: "photos",   label: "Photos",  icon: Image    },
+        { key: "videos",   label: "Vidéos",  icon: Film     },
+        { key: "fichiers", label: "Fichiers", icon: FileText },
     ];
+
+    // Adapter les champs singuliers du backend en tableaux
+    const photos   = site?.image   ? [site.image]   : [];
+    const videos   = site?.video   ? [site.video]   : [];
+    const fichiers = site?.fichier ? [site.fichier] : [];
 
     return (
         <div className="bg-white rounded-2xl border border-gray-300 p-6">
@@ -33,17 +38,10 @@ const MediaTabs = ({ site }) => {
                 ))}
             </div>
 
-            {tab === "photos" && (
-                <PhotoGallery
-                    images={
-                        site.photos?.length   ? site.photos   :   // objets [{url, ...}]
-                        site.images?.length   ? site.images   :   // strings ou objets
-                        []
-                    }
-                />
-)}
-            {tab === "videos"   && <VideoGallery  videos={site.videos   ?? []} />}
-            {tab === "fichiers" && <FichierList   fichiers={site.fichiers ?? []} />}
+            {/* Passer les tableaux construits */}
+            {tab === "photos"   && <PhotoGallery images={photos}   />}
+            {tab === "videos"   && <VideoGallery videos={videos}   />}
+            {tab === "fichiers" && <FichierList  fichiers={fichiers} />}
         </div>
     );
 };

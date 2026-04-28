@@ -91,7 +91,6 @@ export const agencesColumns = [
   { key: "createAt", label: "Créée le", render: Renderers.date },
 ];
 
-// ─── Couleurs statut réservation ──────────────────────────────────────────────
 const statutReservationColors = {
     EN_ATTENTE: "border border-amber-300 text-amber-600 bg-amber-50",
     CONFIRMEE:  "border border-emerald-300 text-emerald-600 bg-emerald-50",
@@ -100,7 +99,6 @@ const statutReservationColors = {
     EXPIREE:    "border border-gray-300 text-gray-500 bg-gray-100",
 };
 
-// ─── Colonnes de base (sans statut) ───────────────────────────────────────────
 const reservationsBaseColumns = [
     { key: "nomComplet",         label: "Touriste",        accessor: (row) => row.nomComplet  ?? row.touriste?.nomComplet  ?? "—", render: Renderers.avatar },
     { key: "reference",          label: "Référence",       cellClass: "px-5", headerClass: "px-5", render: Renderers.subtle },
@@ -112,15 +110,35 @@ const reservationsBaseColumns = [
     { key: "dateLimitePaiement", label: "Limite paiement", render: Renderers.date },
 ];
 
-// ─── Toutes réservations (avec statut) ────────────────────────────────────────
 export const reservationsColumns = [
     ...reservationsBaseColumns,
     { key: "statut", label: "Statut", render: Renderers.badge(statutReservationColors) },
 ];
 
-// ─── Par statut (sans colonne statut — redondant) ─────────────────────────────
 export const reservationsEnAttenteColumns  = [...reservationsBaseColumns];
 export const reservationsConfirmeesColumns = [...reservationsBaseColumns];
 export const reservationsPartiellesColumns = [...reservationsBaseColumns];
 export const reservationsAnnuleesColumns   = [...reservationsBaseColumns];
 export const reservationsExpireesColumns   = [...reservationsBaseColumns];
+
+const statutPaiementColors = {
+    PAYE:    "border border-emerald-300 text-emerald-600 bg-emerald-50",
+    PARTIEL: "border border-blue-300   text-blue-600    bg-blue-50",
+    IMPAYE:  "border border-red-300    text-red-500     bg-red-50",
+};
+
+const paiementsBaseColumns = [
+    { key: "referencePaie",     label: "Référence",      cellClass: "px-5", headerClass: "px-5",                                                                                                    render: Renderers.subtle },
+    //{ key: "reservationId",     label: "Réservation",    accessor: (row) => row.reservationId  != null ? `#${row.reservationId}`                                                         : "—",      render: Renderers.subtle },
+    { key: "montant",           label: "Montant total",  accessor: (row) => row.montant        != null ? `${row.montant.toLocaleString("fr-FR")} FCFA`                                   : "—",      render: Renderers.subtle },
+    { key: "montantPaye",       label: "Montant payé",   accessor: (row) => row.montantPaye    != null ? `${row.montantPaye.toLocaleString("fr-FR")} FCFA`                               : "—",      render: Renderers.subtle },
+    { key: "resteAPayer",       label: "Reste à payer",  accessor: (row) => row.montant        != null && row.montantPaye != null ? `${(row.montant - row.montantPaye).toLocaleString("fr-FR")} FCFA` : "—", render: Renderers.subtle },
+    { key: "datePaiement",      label: "Date paiement",                                                                                                                                             render: Renderers.date   },
+    //{ key: "statutDescription", label: "Description",    accessor: (row) => row.statutDescription ?? "—",                                                                                           render: Renderers.muted  },
+];
+
+export const paiementsColumns          = [...paiementsBaseColumns, { key: "statut", label: "Statut", render: Renderers.badge(statutPaiementColors) }];
+
+export const paiementsPayesColumns    = [...paiementsBaseColumns];
+export const paiementsPartielsColumns = [...paiementsBaseColumns];
+export const paiementsImpayesColumns  = [...paiementsBaseColumns];

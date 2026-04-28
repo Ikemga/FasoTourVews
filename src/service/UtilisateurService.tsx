@@ -43,3 +43,7 @@ export const searchUsers = (search?: string, actif?: boolean) => {
 export const deleteUtilisateur = (id) => {
     return Api.delete(`${BASE}/${id}`);
 };
+
+export const toggleActifUtilisateur = (id: number) => {
+  return Api.put(`${BASE}/${id}/toggle`);
+};

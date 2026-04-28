@@ -19,3 +19,9 @@ export const getReservationStats = () =>
 // Stats par mois
 export const getReservationStatsByMois = (mois: number, annee: number) =>
     Api.get(`${BASE}/stats/mois`, { params: { mois, annee } });
+
+
+// GET stats Paiement
+export const getPaiementStats = () => {
+    return Api.get(`${BASE}/paiements`);
+};

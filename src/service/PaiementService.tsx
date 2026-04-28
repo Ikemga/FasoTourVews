@@ -19,3 +19,11 @@ export const getAllPaiements = () =>
 //Supprimer un paiement
 export const deletePaiement = (id) =>
     Api.delete(`/paiements/${id}`);
+
+export const getPaiementByStatutRecent = (statut) =>
+    Api.get(`/paiements/statut/${statut}/recent`);
+
+
+//Paiement par touriste
+export const getPaiementsByTouriste = (touristeId: number) =>
+    Api.get(`/paiements/touriste/${touristeId}`).then(r => r.data);

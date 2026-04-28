@@ -5,6 +5,8 @@ import DataTable from "../../../components/common/ui/DataTable";
 import { agencesColumns } from "../../../components/common/ui/tableConfigs";
 import { deleteAgence, getAgencesAlphabetical, toggleAgence } from "../../../service/AgenceService";
 import AddAgence from "../../../components/common/ui/AddAgence";
+import { toggleActifUtilisateur } from "../../../service/UtilisateurService";
+import UserDetailDrawer from "./UserDetailDrawer";
 
 const AgenceManager = () => {
   const [agences, setAgences]           = useState([]);
@@ -13,6 +15,19 @@ const AgenceManager = () => {
   const [successMessage, setSuccessMessage] = useState("");
   const [agenceEdit, setAgenceEdit]     = useState(null);
   const [openForm, setOpenForm]         = useState(false);
+
+  const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [openDrawer, setOpenDrawer] = useState(false);
+
+  const handleView = (row: any) => {
+    setSelectedUser(row);
+    setOpenDrawer(true);
+  };
+
+  const handleCloseDrawer = () => {
+    setOpenDrawer(false);
+    setSelectedUser(null);
+  };
 
   const showSuccess = (message: string) => {
     setSuccessMessage(message);
@@ -48,18 +63,35 @@ const AgenceManager = () => {
     }
   };
 
-  const handleToggle = async (row: any) => {
+  const handleToggleActif = async (user: any) => {
+  
+    const ok = confirm(
+      user.actif
+        ? "Désactiver cet utilisateur ?"
+        : "Activer cet utilisateur ?"
+    );
+  
+    if (!ok) return;
+  
     try {
-      await toggleAgence(row.id);
+      await toggleActifUtilisateur(user.id);
+  
       setAgences((prev: any[]) =>
-        prev.map((a) =>
-          a.id === row.id ? { ...a, actif: !a.actif } : a  // ✅ toggle actif
+        prev.map((t) =>
+          t.id === user.id ? { ...t, actif: !t.actif } : t
         )
       );
-    } catch (err) {
-      console.error("Erreur lors du toggle :", err);
+  
+      setSelectedUser((prev: any) => ({
+        ...prev,
+        actif: !prev.actif
+      }));
+  
+    } catch (error) {
+      console.error(error);
     }
   };
+  
 
   //Ouvrir formulaire en mode édition
   const handleEdit = (row: any) => {
@@ -130,7 +162,7 @@ const AgenceManager = () => {
         <DataTable
           rows={agences}
           columns={agencesColumns}
-          onView={(row)   => console.log("voir", row)}
+          onView={handleView}
           onEdit={handleEdit}
           onDelete={handleDelete}
           emptyText="Aucune agence trouvée."
@@ -143,6 +175,12 @@ const AgenceManager = () => {
         onClose={handleClose}
         onSuccess={handleSuccess}
         initialData={agenceEdit}
+      />
+
+      <UserDetailDrawer
+        utilisateur={openDrawer ? selectedUser : null}
+        onClose={handleCloseDrawer}
+        onToggleActif={handleToggleActif}
       />
     </div>
   );

@@ -1,6 +1,7 @@
 import HeaderTitle from "../../components/common/utilitaire/HeaderTitle";
 import DashboardStats from "../../components/common/utilitaire/DashboardStats";
-import ActiviteRecente from "./ActiviteRecente";
+import SitesParCategorieChart from "./SitesParCategorieChart";
+import CircuitsTauxReservationChart from "./CircuitsTauxReservationChart";
 
 const Dashboad = () =>{
     return(
@@ -13,8 +14,15 @@ const Dashboad = () =>{
 
             <main className="flex flex-col flex-1">
                 <DashboardStats />
-                
-                <ActiviteRecente />
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch mx-6">
+                    <div className="h-full">
+                        <SitesParCategorieChart />
+                    </div>
+
+                    <div className="h-full">
+                        <CircuitsTauxReservationChart />
+                    </div>
+                </div>
             </main>
         </div>
     )

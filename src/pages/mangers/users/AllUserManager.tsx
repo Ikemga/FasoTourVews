@@ -1,13 +1,28 @@
 import { useEffect, useState } from "react";
-import { deleteUtilisateur, getUsersByRecent, searchUsers } from "../../../service/UtilisateurService";
+import { deleteUtilisateur, getUsersByRecent, searchUsers, toggleActifUtilisateur } from "../../../service/UtilisateurService";
 import DataTable from "../../../components/common/ui/DataTable";
 import { utilisateursColumns } from "../../../components/common/ui/tableConfigs";
+import UserDetailDrawer from "./UserDetailDrawer";
 
 const AllUserManager = ({ search = "", actif }: { search?: string; actif?: boolean }) => {
   const [users, setUsers]     = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError]     = useState(null);
   const[successMessage, setSuccessMessage] = useState("");
+
+
+  const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [openDrawer, setOpenDrawer] = useState(false);
+
+  const handleView = (row: any) => {
+    setSelectedUser(row);
+    setOpenDrawer(true);
+  };
+
+  const handleCloseDrawer = () => {
+    setOpenDrawer(false);
+    setSelectedUser(null);
+  };
 
 
   const showSuccess = (message : string) =>{
@@ -29,6 +44,35 @@ const AllUserManager = ({ search = "", actif }: { search?: string; actif?: boole
       console.error(err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleToggleActif = async (user: any) => {
+  
+    const ok = confirm(
+      user.actif
+        ? "Désactiver cet utilisateur ?"
+        : "Activer cet utilisateur ?"
+    );
+  
+    if (!ok) return;
+  
+    try {
+      await toggleActifUtilisateur(user.id);
+  
+      setUsers((prev: any[]) =>
+        prev.map((t) =>
+          t.id === user.id ? { ...t, actif: !t.actif } : t
+        )
+      );
+  
+      setSelectedUser((prev: any) => ({
+        ...prev,
+        actif: !prev.actif
+      }));
+  
+    } catch (error) {
+      console.error(error);
     }
   };
 
@@ -87,12 +131,18 @@ const AllUserManager = ({ search = "", actif }: { search?: string; actif?: boole
         <DataTable
           rows={users}
           columns={utilisateursColumns}
-          onView={(row) => console.log("voir", row)}
+          onView={handleView}
           onEdit={(row) => console.log("éditer", row)}
           onDelete={handleDelete}
           emptyText="Aucun utilisateur trouvé."
         />
       )}
+
+      <UserDetailDrawer
+        utilisateur={openDrawer ? selectedUser : null}
+        onClose={handleCloseDrawer}
+        onToggleActif={handleToggleActif}
+      />
     </div>
   );
 };

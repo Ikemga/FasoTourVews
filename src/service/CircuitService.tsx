@@ -54,8 +54,20 @@ export const getCircuitsByStatutPath = (statut) =>
 export const getCircuitsByStatutRecent = (statut) =>
     Api.get(`/circuits/statut/${statut}/recent`);
 
+export const getCircuitsByAgenceId = (statut = null) =>
+  Api.get(`/circuits/mes/circuits`, { params: statut ? { statut } : {} });
+
+
 export const getCircuitsByStatutAncien = (statut) =>
     Api.get(`/circuits/statut/${statut}/ancien`);
 
 export const getCircuitsByAgence = (agenceId) =>
     Api.get(`/circuits/agence/${agenceId}`);
+
+// ── TAUX DE RÉSERVATION ───────────────────────────────────────────────────────
+
+export const getCircuitsByTauxReservation = () =>
+    Api.get("/circuits/taux/reservation");
+
+export const getTopCircuits = () =>
+    Api.get("/circuits/top");

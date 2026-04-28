@@ -3,7 +3,7 @@ import { X, ChevronLeft, ChevronRight } from "lucide-react";
 
 const BASE_URL = "http://localhost:8080";
 
-// ✅ Retourne une URL complète utilisable dans <img src>
+// Retourne une URL complète utilisable dans <img src>
 const toUrl = (item) => {
     if (!item) return "/placeholder.jpg";
 
@@ -12,16 +12,14 @@ const toUrl = (item) => {
         : item.url ?? item.cheminFichier ?? item.path ?? item.src ?? "";
 
     if (!raw) return "/placeholder.jpg";
-    if (raw.startsWith("http")) return raw;          // déjà une URL complète
-    return `${BASE_URL}${raw}`;                      // ✅ ajoute le domaine
+    if (raw.startsWith("http")) return raw;         
+    return `${BASE_URL}${raw}`;                     
 };
 
 const PhotoGallery = ({ images = [] }) => {
     const [current,  setCurrent]  = useState(0);
     const [lightbox, setLightbox] = useState(false);
 
-    // ✅ Log pour déboguer
-    console.log("PHOTOS REÇUES :", images);
 
     if (!images.length) return (
         <div className="h-40 rounded-xl bg-gray-100 flex items-center justify-center text-gray-400 text-sm">

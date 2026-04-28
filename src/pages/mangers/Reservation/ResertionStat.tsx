@@ -1,7 +1,5 @@
-import { useEffect, useState } from "react";
 import { motion }              from "framer-motion";
 import { CalendarDays, CalendarCheck, CalendarX, Clock, LayoutGrid } from "lucide-react";
-import { getReservationStats } from "../../../service/DashboardService";
 
 const cardVariants = {
     hidden:  { opacity: 0, y: 28, scale: 0.96 },

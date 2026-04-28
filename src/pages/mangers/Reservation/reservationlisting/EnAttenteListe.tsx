@@ -1,8 +1,8 @@
-import { useEffect, useState }           from "react";
-import { getReservationByStatut }        from "../../../../service/ReservationService";
-import { deleteReservation }             from "../../../../service/ReservationService";
-import DataTable                         from "../../../../components/common/ui/DataTable";
-import { reservationsEnAttenteColumns }  from "../../../../components/common/ui/tableConfigs";
+import { useEffect, useState }                                                    from "react";
+import { annuleeReservation, getMesReservations, getReservationByStatut }         from "../../../../service/ReservationService";
+import DataTable                                                                   from "../../../../components/common/ui/DataTable";
+import { reservationsEnAttenteColumns }                                            from "../../../../components/common/ui/tableConfigs";
+import ReservationDetailDrawer                                                     from "./ReservationDetailDrawer";
 
 const EnAttenteListe = () => {
 
@@ -10,6 +10,7 @@ const EnAttenteListe = () => {
     const [loading,        setLoading]        = useState(true);
     const [error,          setError]          = useState(null);
     const [successMessage, setSuccessMessage] = useState("");
+    const [selectedRow,    setSelectedRow]    = useState<any>(null);  // ← ajouté
 
     const showSuccess = (message: string) => {
         setSuccessMessage(message);
@@ -17,25 +18,43 @@ const EnAttenteListe = () => {
     };
 
     useEffect(() => {
-        getReservationByStatut("EN_ATTENTE")
-            .then(res  => setReservations(res.data))
-            .catch(()  => setError("Impossible de charger les réservations en attente."))
+        const role = localStorage.getItem("role");
+        const apiCall = role?.includes("AGENCE")
+            ? getMesReservations("EN_ATTENTE")
+            : getReservationByStatut("EN_ATTENTE");
+
+        apiCall
+            .then(res => setReservations(res.data))
+            .catch(() => setError("Impossible de charger les réservations en attente."))
             .finally(() => setLoading(false));
     }, []);
 
-    const handleDelete = async (row: any) => {
-        if (!confirm("Supprimer cette réservation ?")) return;
+    const handleCancel = async (row: any) => {
+        if (!confirm("Voulez-vous vraiment annuler cette réservation ?")) return;
         try {
-            await deleteReservation(row.id);
-            setReservations((prev: any[]) => prev.filter((r) => r.id !== row.id));
-            showSuccess("Réservation supprimée avec succès !");
+            await annuleeReservation(row.id);
+            setReservations((prev: any[]) =>
+                prev.map((r: any) =>
+                    r.id === row.id ? { ...r, statut: "ANNULEE", statutDescription: "Réservation annulée" } : r
+                )
+            );
+            // Mettre à jour le drawer si la ligne annulée est celle affichée
+            if (selectedRow?.id === row.id) {
+                setSelectedRow((prev: any) => ({
+                    ...prev,
+                    statut: "ANNULEE",
+                    statutDescription: "Réservation annulée",
+                }));
+            }
+            showSuccess("Réservation annulée avec succès !");
         } catch (err) {
-            console.error("Erreur lors de la suppression :", err);
+            console.error("Erreur lors de l'annulation :", err);
         }
     };
 
     return (
         <div className="p-6">
+
             {successMessage && (
                 <div className="fixed top-6 right-6 z-50 flex items-center gap-3 bg-green-600 text-white text-sm px-5 py-3 rounded-xl shadow-lg">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -66,11 +85,18 @@ const EnAttenteListe = () => {
                 <DataTable
                     rows={reservations}
                     columns={reservationsEnAttenteColumns}
-                    onView={(row)   => console.log("voir", row)}
-                    onDelete={handleDelete}
+                    onView={(row) => setSelectedRow(row)}
+                    onCancel={handleCancel}
                     emptyText="Aucune réservation en attente."
                 />
             )}
+
+            {/* Drawer détail — bouton annulation visible car statut EN_ATTENTE */}
+            <ReservationDetailDrawer
+                reservation={selectedRow}
+                onClose={() => setSelectedRow(null)}
+                onCancel={(row) => handleCancel(row)}
+            />
         </div>
     );
 };

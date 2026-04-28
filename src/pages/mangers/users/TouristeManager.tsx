@@ -5,6 +5,8 @@ import AddTouriste from "../../../components/common/ui/AddTouriste";
 import DataTable from "../../../components/common/ui/DataTable";
 import { touristesColumns} from "../../../components/common/ui/tableConfigs";
 import { deleteTouriste, getTouristesAlphabetical } from "../../../service/TouristrService";
+import UserDetailDrawer from "./UserDetailDrawer";
+import { toggleActifUtilisateur } from "../../../service/UtilisateurService";
 
 
 const TouristeManager = () => {
@@ -14,6 +16,19 @@ const TouristeManager = () => {
   const [successMessage, setSuccessMessage] = useState("");
   const [touristeEdit, setTouristeEdit]     = useState(null);
   const [openForm, setOpenForm]         = useState(false);
+
+  const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [openDrawer, setOpenDrawer] = useState(false);
+
+  const handleView = (row: any) => {
+    setSelectedUser(row);
+    setOpenDrawer(true);
+  };
+
+  const handleCloseDrawer = () => {
+    setOpenDrawer(false);
+    setSelectedUser(null);
+  };
 
   const showSuccess = (message : string) =>{
     setSuccessMessage(message);
@@ -48,6 +63,36 @@ const TouristeManager = () => {
       console.error("Erreur lors de la suppression :", err);
     }
   };
+
+  const handleToggleActif = async (user: any) => {
+
+  const ok = confirm(
+    user.actif
+      ? "Désactiver cet utilisateur ?"
+      : "Activer cet utilisateur ?"
+  );
+
+  if (!ok) return;
+
+  try {
+    await toggleActifUtilisateur(user.id);
+
+    setTouristes((prev: any[]) =>
+      prev.map((t) =>
+        t.id === user.id ? { ...t, actif: !t.actif } : t
+      )
+    );
+
+    setSelectedUser((prev: any) => ({
+      ...prev,
+      actif: !prev.actif
+    }));
+
+  } catch (error) {
+    console.error(error);
+  }
+};
+
 
 //Ouvrir formulaire en mode édition
   const handleEdit = (row: any) => {
@@ -117,7 +162,7 @@ const TouristeManager = () => {
         <DataTable
           rows={touristes}
           columns={touristesColumns}
-          onView={(row) => console.log("voir", row)}
+          onView={handleView}
           onEdit={handleEdit}
           onDelete={handleDelete}
           emptyText="Aucun touriste trouvé."
@@ -131,6 +176,13 @@ const TouristeManager = () => {
         onSuccess={handleSuccess}
         initialData={touristeEdit}
       />
+
+      <UserDetailDrawer
+        utilisateur={openDrawer ? selectedUser : null}
+        onClose={handleCloseDrawer}
+        onToggleActif={handleToggleActif}
+      />
+      
     </div>
   );
 };

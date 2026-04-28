@@ -1,7 +1,7 @@
 const CategoryCard = ({ item, selected, onClick }) => (
     <button
         type="button"
-        onClick={onClick}
+        onClick={() => onClick(item.id)}
         className="flex-1 min-w-[130px] text-left p-4 rounded-2xl border-2 transition-all duration-200"
         style={{
             borderColor:     selected ? "#c1440e" : "#E5E7EB",

@@ -4,7 +4,10 @@ import { BouttonPopUp } from "../../../components/common/ui/Bt";
 import AddGuide from "../../../components/common/ui/AddGuide";
 import DataTable from "../../../components/common/ui/DataTable";
 import { guidesColumns } from "../../../components/common/ui/tableConfigs";
-import { getGuidesAlphabetical, deleteGuide, toggleGuide } from "../../../service/GuideService";
+import { getGuidesAlphabetical, deleteGuide, toggleGuide, getMesGuides } from "../../../service/GuideService";
+import { useAuth } from "../../../service/protected/useAuth";
+import { toggleActifUtilisateur } from "../../../service/UtilisateurService";
+import UserDetailDrawer from "./UserDetailDrawer";
 
 type Guide = {
     id: number;
@@ -17,12 +20,27 @@ type Guide = {
 };
 
 const GuideManager = () => {
+
+    const { role }   = useAuth();
     const [guides, setGuides]                 = useState([]);
     const [loading, setLoading]               = useState(true);
     const [error, setError]                   = useState(null);
     const [successMessage, setSuccessMessage] = useState("");
     const [guideEdit, setGuideEdit]           = useState(null);
     const [openForm, setOpenForm]             = useState(false);
+
+    const [selectedUser, setSelectedUser] = useState<any>(null);
+      const [openDrawer, setOpenDrawer] = useState(false);
+    
+      const handleView = (row: any) => {
+        setSelectedUser(row);
+        setOpenDrawer(true);
+      };
+    
+      const handleCloseDrawer = () => {
+        setOpenDrawer(false);
+        setSelectedUser(null);
+      };
 
     const showSuccess = (message: string) => {
         setSuccessMessage(message);
@@ -31,21 +49,34 @@ const GuideManager = () => {
 
     // ─── Fetch ───────────────────────────────────────────────────────────────
     const fetchGuides = async () => {
-  try {
-    setLoading(true);
-    setError(null);
-    const response = await getGuidesAlphabetical();
-    if (!response?.data) {
-      throw new Error("Aucune donnée reçue");
-    }
-    setGuides(response.data);
-  } catch (err) {
-    console.error("Erreur fetchGuides:", err);
-    setError( err.response?.data?.message || "Impossible de charger les guides."
-    );
-  } finally {
-    setLoading(false);
-  }
+        try {
+            setLoading(true);
+            setError(null);
+
+            const response =
+            role === "AGENCE"
+                ? await getMesGuides()
+                : await getGuidesAlphabetical();
+
+                console.log("ROLE =>", role);
+                console.log("API RESPONSE =>", response);
+                console.log("DATA =>", response?.data);
+
+            if (!response?.data) {
+            throw new Error("Aucune donnée reçue");
+            }
+
+            setGuides(response.data);
+
+        } catch (err: any) {
+            console.error("Erreur fetchGuides:", err);
+            setError(
+            err?.response?.data?.message ||
+            "Impossible de charger les guides."
+            );
+        } finally {
+            setLoading(false);
+        }
 };
 
     useEffect(() => { fetchGuides(); }, []);
@@ -83,15 +114,33 @@ const GuideManager = () => {
         }
     };
 
-    const handleToggle = async (row: Guide) => {
-        try {
-            await toggleGuide(row.id);
-            setGuides((prev) =>
-                prev.map((g) => g.id === row.id ? { ...g, actif: !g.actif } : g)
-            );
-        } catch (err) {
-            console.error("Erreur lors du toggle :", err);
-        }
+    const handleToggleActif = async (user: any) => {
+    
+      const ok = confirm(
+        user.actif
+          ? "Désactiver cet utilisateur ?"
+          : "Activer cet utilisateur ?"
+      );
+    
+      if (!ok) return;
+    
+      try {
+        await toggleActifUtilisateur(user.id);
+    
+        setGuides((prev: any[]) =>
+          prev.map((t) =>
+            t.id === user.id ? { ...t, actif: !t.actif } : t
+          )
+        );
+    
+        setSelectedUser((prev: any) => ({
+          ...prev,
+          actif: !prev.actif
+        }));
+    
+      } catch (error) {
+        console.error(error);
+      }
     };
 
     // ─── Render ──────────────────────────────────────────────────────────────
@@ -138,7 +187,7 @@ const GuideManager = () => {
                 <DataTable
                     rows={guides}
                     columns={guidesColumns}
-                    onView={(row) => console.log("voir", row)}
+                    onView={handleView}
                     onEdit={handleEdit}
                     onDelete={handleDelete}
                     emptyText="Aucun guide trouvé."
@@ -150,6 +199,12 @@ const GuideManager = () => {
                 onClose={handleClose}
                 onSuccess={handleSuccess}
                 initialData={guideEdit}
+            />
+
+            <UserDetailDrawer
+                utilisateur={openDrawer ? selectedUser : null}
+                onClose={handleCloseDrawer}
+                onToggleActif={handleToggleActif}
             />
         </div>
     );

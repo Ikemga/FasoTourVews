@@ -2,7 +2,8 @@ import { ChevronDown } from "lucide-react";
 import { useState } from "react";
 
 
-const STATUTS = ["Brouillon", "ACTIF", "Inactif"];
+const STATUTS = ["ACTIF", "INACTIF", "BROUILLON", "CLOS", "EN_COURS", "TERMINEE"];
+
 
 interface Props {
     value: string;

@@ -1,79 +1,136 @@
 import { Route } from "lucide-react";
-import {MapContainer, TileLayer, Marker, Polyline, Popup } from "react-leaflet";
-import { useEffect, useState } from "react";
+import { MapContainer, TileLayer, Marker, Polyline, Popup, useMap } from "react-leaflet";
+import { useEffect, useState, useMemo, useRef, useCallback } from "react";
 import L from "leaflet";
 
-delete L.Icon.Default.prototype._getIconUrl;
-    L.Icon.Default.mergeOptions({
-    iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-    iconUrl:       "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-    shadowUrl:     "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+// ─── Fix des icônes Leaflet (une seule fois, hors composant) ──────────────────
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+  iconUrl:       "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+  shadowUrl:     "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
 });
+delete L.Icon.Default.prototype._getIconUrl;
 
-const numberedIcon = (number) =>
-  L.divIcon({
-    className: "",
-    html: `
-      <div style="
-        width:30px; height:30px; border-radius:50%;
-        background:#c1440e; color:white;
-        display:flex; align-items:center; justify-content:center;
-        font-weight:bold; font-size:13px;
-        border: 2px solid white;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-      ">${number}</div>`,
-    iconSize:   [30, 30],
-    iconAnchor: [15, 15],
-  });
+// ─── Cache module-level pour ne pas re-géocoder entre remounts ────────────────
+const geocodeCache = new Map();
 
-// Géocode un texte → { lat, lng } via Nominatim
-const geocode = async (localisation) => {
+const geocode = async (query, signal) => {
+  if (!query) return null;
+  if (geocodeCache.has(query)) return geocodeCache.get(query);
+
   try {
     const res = await fetch(
-      `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(localisation)}&format=json&limit=1`,
-      { headers: { "Accept-Language": "fr" } }
+      `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1`,
+      { headers: { "Accept-Language": "fr" }, signal }
     );
     const data = await res.json();
     if (data.length > 0) {
-      return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
+      const coords = { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
+      geocodeCache.set(query, coords);
+      return coords;
     }
-  } catch { /* silencieux */ }
+  } catch (err) {
+    if (err.name !== "AbortError") console.warn(`Geocode failed for "${query}"`, err);
+  }
   return null;
 };
 
+// ─── Icônes mémoïsées par numéro ──────────────────────────────────────────────
+const iconCache = new Map();
+const numberedIcon = (number) => {
+  if (iconCache.has(number)) return iconCache.get(number);
+  const icon = L.divIcon({
+    className: "",
+    html: `<div style="
+      width:32px;height:32px;border-radius:50%;
+      background:#c1440e;color:white;
+      display:flex;align-items:center;justify-content:center;
+      font-weight:700;font-size:13px;
+      border:2.5px solid white;
+      box-shadow:0 2px 8px rgba(0,0,0,.35);
+      font-family:system-ui,sans-serif;
+    ">${number}</div>`,
+    iconSize:   [32, 32],
+    iconAnchor: [16, 16],
+    popupAnchor:[0, -18],
+  });
+  iconCache.set(number, icon);
+  return icon;
+};
+
+// ─── Auto-fit bounds dès que les coords sont disponibles ─────────────────────
+const MapFitter = ({ points }) => {
+  const map = useMap();
+  useEffect(() => {
+    if (points.length === 0) return;
+    if (points.length === 1) {
+      map.setView(points[0], 11, { animate: true });
+    } else {
+      map.fitBounds(L.latLngBounds(points), { padding: [48, 48], animate: true });
+    }
+  }, [map, points]);
+  return null;
+};
+
+// ─── Composant principal ──────────────────────────────────────────────────────
 const CircuitSites = ({ sites = [] }) => {
-  const [sitesGeo, setSitesGeo] = useState([]);
-  const [loading, setLoading]   = useState(false);
+  // État unifié → jamais de render incohérent entre loading/data
+  const [state, setState] = useState({ status: "idle", sitesGeo: [] });
+  const abortRef = useRef(null);
+
+  const fetchGeodata = useCallback(async (siteList) => {
+    // Annule le fetch précédent si on re-render avec de nouveaux sites
+    abortRef.current?.abort();
+    abortRef.current = new AbortController();
+    const { signal } = abortRef.current;
+
+    setState({ status: "loading", sitesGeo: [] });
+
+    // Requêtes parallèles avec le même signal
+    const results = await Promise.all(
+      siteList.map(async (site) => {
+        const query = site.localisation ?? site.nom ?? "";
+        const coords = await geocode(query, signal);
+        return { ...site, coords };
+      })
+    );
+
+    if (!signal.aborted) {
+      setState({ status: "ready", sitesGeo: results });
+    }
+  }, []);
 
   useEffect(() => {
-    if (!sites.length) return;
-    setLoading(true);
+    if (!sites.length) {
+      setState({ status: "idle", sitesGeo: [] });
+      return;
+    }
+    fetchGeodata(sites);
+    return () => abortRef.current?.abort();
+  }, [sites, fetchGeodata]);
 
-    const fetchAll = async () => {
-      const results = await Promise.all(
-        sites.map(async (site) => {
-          const coords = await geocode(site.localisation ?? site.nom ?? "");
-          return { ...site, coords };
-        })
-      );
-      setSitesGeo(results);
-      setLoading(false);
-    };
+  // ── Dérivés mémoïsés ────────────────────────────────────────────────────────
+  const sitesAvecCoords = useMemo(
+    () => state.sitesGeo.filter((s) => s.coords),
+    [state.sitesGeo]
+  );
 
-    fetchAll();
-  }, [sites]);
+  const polylinePoints = useMemo(
+    () => sitesAvecCoords.map((s) => [s.coords.lat, s.coords.lng]),
+    [sitesAvecCoords]
+  );
+
+  // Centre initial (avant fitBounds) — évite un recalcul inutile
+  const defaultCenter = useMemo(() => {
+    if (!sitesAvecCoords.length) return [12.3714, -1.5197]; // Ouagadougou
+    const lat = sitesAvecCoords.reduce((s, p) => s + p.coords.lat, 0) / sitesAvecCoords.length;
+    const lng = sitesAvecCoords.reduce((s, p) => s + p.coords.lng, 0) / sitesAvecCoords.length;
+    return [lat, lng];
+  }, [sitesAvecCoords]);
 
   if (!sites.length) return null;
 
-  const sitesAvecCoords = sitesGeo.filter(s => s.coords);
-  const polylinePoints  = sitesAvecCoords.map(s => [s.coords.lat, s.coords.lng]);
-
-  const center = sitesAvecCoords.length
-    ? [
-        sitesAvecCoords.reduce((sum, s) => sum + s.coords.lat, 0) / sitesAvecCoords.length,
-        sitesAvecCoords.reduce((sum, s) => sum + s.coords.lng, 0) / sitesAvecCoords.length,
-      ]
-    : [12.3714, -1.5197];
+  const isLoading = state.status === "loading";
 
   return (
     <div className="mb-6">
@@ -82,33 +139,43 @@ const CircuitSites = ({ sites = [] }) => {
         Itinéraire du circuit
       </h3>
 
-      {/* Carte */}
-      <div className="rounded-2xl overflow-hidden border border-gray-100 shadow-sm mb-4 h-84">
-        {loading ? (
-          <div className="h-full flex items-center justify-center text-gray-400 text-sm bg-gray-50">
-            Chargement de la carte...
+      {/* ── Carte ─────────────────────────────────────────────────────────── */}
+      <div
+        className="rounded-2xl overflow-hidden border border-gray-100 shadow-sm mb-4"
+        style={{ height: 340 }}
+      >
+        {isLoading ? (
+          <div className="h-full flex items-center justify-center text-gray-400 text-sm bg-gray-50 gap-2">
+            <span className="animate-spin inline-block w-4 h-4 border-2 border-[#c1440e] border-t-transparent rounded-full" />
+            Chargement de la carte…
           </div>
         ) : (
           <MapContainer
-            center={center}
-            zoom={sitesAvecCoords.length === 1 ? 10 : 8}
+            center={defaultCenter}
+            zoom={sitesAvecCoords.length === 1 ? 11 : 7}
             style={{ height: "100%", width: "100%" }}
             scrollWheelZoom={false}
+            zoomControl={true}
           >
             <TileLayer
-              Attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a>'
+              attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a>'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
 
-            {/* Ligne pointillée */}
+            {/* Fit automatique dès que les points sont connus */}
+            <MapFitter points={polylinePoints} />
+
+            {/* Tracé du circuit */}
             {polylinePoints.length > 1 && (
               <Polyline
                 positions={polylinePoints}
                 pathOptions={{
                   color:     "#c1440e",
                   weight:    3,
-                  dashArray: "8, 8",
-                  opacity:   0.8,
+                  dashArray: "10, 8",
+                  opacity:   0.85,
+                  lineCap:   "round",
+                  lineJoin:  "round",
                 }}
               />
             )}
@@ -120,14 +187,17 @@ const CircuitSites = ({ sites = [] }) => {
                 position={[site.coords.lat, site.coords.lng]}
                 icon={numberedIcon(i + 1)}
               >
-                <Popup>{site.nom}</Popup>
+                <Popup>
+                  <strong>{site.nom}</strong>
+                  {site.description && <p className="text-xs mt-1 text-gray-600">{site.description}</p>}
+                </Popup>
               </Marker>
             ))}
           </MapContainer>
         )}
       </div>
 
-      {/* Légende */}
+      {/* ── Légende ───────────────────────────────────────────────────────── */}
       <div className="flex flex-wrap gap-2">
         {sites.map((site, i) => (
           <span

@@ -7,11 +7,11 @@ import EditSiteModal from "../../../../components/common/ui/EditSiteModal";
 import { useState, useEffect } from "react";
 import { getSiteById } from "../../../../service/SiteService";
 
-const SitesDetail = ({ site, onBack, onToggleSidebar, onDelete, onRefresh }) => {
+const SitesDetail = ({ site, onBack, onToggleSidebar, onDelete, onRefresh, canDelete }) => { //canDelete ajouté
 
-    const [editOpen, setEditOpen]       = useState(false);
-    const [siteLocal, setSiteLocal]     = useState(site);
-    const [refreshing, setRefreshing]   = useState(false);
+    const [editOpen, setEditOpen]     = useState(false);
+    const [siteLocal, setSiteLocal]   = useState(site);
+    const [refreshing, setRefreshing] = useState(false);
 
     useEffect(() => {
         setSiteLocal(site);
@@ -90,6 +90,7 @@ const SitesDetail = ({ site, onBack, onToggleSidebar, onDelete, onRefresh }) => 
                 </div>
             </div>
 
+            {/*Boutons d'action : visibles seulement pour ADMIN */}
             <div className="mb-4 flex justify-center items-center gap-4">
                 <button
                     onClick={openItineraire}
@@ -99,29 +100,35 @@ const SitesDetail = ({ site, onBack, onToggleSidebar, onDelete, onRefresh }) => 
                     Voir l'itinéraire
                 </button>
 
-                <div className="flex gap-3">
-                    <button
-                        onClick={() => setEditOpen(true)}
-                        className="px-4 py-3 flex-1 flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-xl transition shadow-md shadow-orange-200"
-                    >
-                        <Pencil size={16} />
-                        Modifier
-                    </button>
-                    <button
-                        onClick={onDelete}
-                        className="flex items-center justify-center w-12 h-12 bg-red-500 hover:bg-red-600 text-white rounded-xl transition shadow-md shadow-red-200"
-                    >
-                        <Trash2 size={16} />
-                    </button>
-                </div>
+                {/*Modifier et Supprimer : ADMIN uniquement */}
+                {canDelete && (
+                    <div className="flex gap-3">
+                        <button
+                            onClick={() => setEditOpen(true)}
+                            className="px-4 py-3 flex-1 flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-xl transition shadow-md shadow-orange-200"
+                        >
+                            <Pencil size={16} />
+                            Modifier
+                        </button>
+                        <button
+                            onClick={onDelete}
+                            className="flex items-center justify-center w-12 h-12 bg-red-500 hover:bg-red-600 text-white rounded-xl transition shadow-md shadow-red-200"
+                        >
+                            <Trash2 size={16} />
+                        </button>
+                    </div>
+                )}
             </div>
 
-            <EditSiteModal
-                open={editOpen}
-                onClose={() => setEditOpen(false)}
-                onSuccess={handleEditSuccess}
-                site={siteLocal}
-            />
+            {/* Modal modifier : accessible seulement si canDelete */}
+            {canDelete && (
+                <EditSiteModal
+                    open={editOpen}
+                    onClose={() => setEditOpen(false)}
+                    onSuccess={handleEditSuccess}
+                    site={siteLocal}
+                />
+            )}
         </div>
     );
 };

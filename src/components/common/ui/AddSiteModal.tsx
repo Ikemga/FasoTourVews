@@ -8,7 +8,8 @@ import { useEffect, useState } from "react";
 import CategorieSelector from "./CategorieSelector";
 import { postSites } from "../../../service/SiteService";
 import { createPortal } from "react-dom";
-import SelectOption from "./SelectOption";
+import SelectStatutSite from "./SelectStatutSite"; // ✅ remplace SelectOption
+import SiteSelector from "./SiteSelector";
 
 const Toast = ({ message, type }) => (
     createPortal(
@@ -37,26 +38,25 @@ const Toast = ({ message, type }) => (
     )
 );
 
-const AddSiteModal = ({ open, onClose, onSuccess , initialData = null }) => {
-    const [loading, setLoading]         = useState(false);
-    const [error, setError]             = useState(null);
-    const [success, setSuccess]         = useState(null);
-    const [selectedCats, setSelectedCats] = useState([]);
-    const [statut, setStatut]             = useState(initialData?.statut ?? "Actif")
-    const [ouverture, setOuverture] = useState("08:00");
-    const [fermeture, setFermeture] = useState("17:00");
-    const [photos, setPhotos]           = useState([]);
-    const [videos, setVideos]           = useState([]);
-    const [fichiers, setFichiers]       = useState([]);
+const AddSiteModal = ({ open, onClose, onSuccess, initialData = null }) => {
+    const [loading, setLoading]             = useState(false);
+    const [error, setError]                 = useState(null);
+    const [success, setSuccess]             = useState(null);
+    const [selectedCats, setSelectedCats]   = useState([]);
+    const [selectedSites, setSelectedSites] = useState([]);
+    const [statut, setStatut]               = useState(initialData?.statut ?? "ACTIF");
+    const [ouverture, setOuverture]         = useState("08:00");
+    const [fermeture, setFermeture]         = useState("17:00");
+    const [photos, setPhotos]               = useState([]);
+    const [videos, setVideos]               = useState([]);
+    const [fichiers, setFichiers]           = useState([]);
 
-    // 
     useEffect(() => {
         if (!error) return;
         const timer = setTimeout(() => setError(null), 3000);
         return () => clearTimeout(timer);
     }, [error]);
 
-    // 
     useEffect(() => {
         if (!success) return;
         const timer = setTimeout(() => setSuccess(null), 2000);
@@ -83,27 +83,21 @@ const AddSiteModal = ({ open, onClose, onSuccess , initialData = null }) => {
         setError(null);
         setSuccess(null);
 
-        formData.append("nom", form.nom.value);
-        formData.append("region", form.region.value);
-        formData.append("description", form.description.value);
-        formData.append("localisation", form.localisation.value);
-        formData.append("noteMoyenne", form.noteMoyenne.value || "");
-        formData.append("tarif", form.prix.value || "");
-        formData.append("statut", statut);
-
+        formData.append("nom",            form.nom.value);
+        formData.append("region",         form.region.value);
+        formData.append("description",    form.description.value);
+        formData.append("localisation",   form.localisation.value);
+        formData.append("noteMoyenne",    form.noteMoyenne.value || "");
+        formData.append("tarif",          form.prix.value || "");
+        formData.append("statut",         statut);
         formData.append("heureOuverture", ouvertureVal);
         formData.append("heureFermeture", fermetureVal);
 
-        selectedCats.forEach(cat => {
-            formData.append("categorieIds", cat.id);
-        });
+        selectedCats.forEach(cat   => formData.append("categorieIds", cat.id));
+        selectedSites.forEach(site => formData.append("siteIds",      site.id));
 
-        if (photos.length > 0) {
-            formData.append("image", photos[0]);
-        }
-
-        
-        videos.forEach(v => formData.append("videos", v));
+        if (photos.length > 0) formData.append("image", photos[0]);
+        videos.forEach(v  => formData.append("videos",   v));
         fichiers.forEach(f => formData.append("fichiers", f));
 
         try {
@@ -116,9 +110,9 @@ const AddSiteModal = ({ open, onClose, onSuccess , initialData = null }) => {
             setLoading(false);
         }
     };
+
     return (
         <>
-            {/*Toasts via Portal */}
             <Toast message={success} type="success" />
             <Toast message={error}   type="error"   />
 
@@ -158,7 +152,7 @@ const AddSiteModal = ({ open, onClose, onSuccess , initialData = null }) => {
                                 {/* Description */}
                                 <div>
                                     <Label label="Description" />
-                                    <Textarea name="description" placeholder="Découvrez le circuit ..." />
+                                    <Textarea name="description" placeholder="Découvrez le site ..." />
                                 </div>
 
                                 {/* Géolocalisation + Note + Catégorie */}
@@ -180,12 +174,7 @@ const AddSiteModal = ({ open, onClose, onSuccess , initialData = null }) => {
                                 {/* Horaires + Tarif + Statut */}
                                 <div className="relative w-full flex gap-4 items-end">
                                     <div className="flex-1">
-
-                                        <LabelRequiert 
-                                            label="Horaires"
-                                            requiert="*"
-                                                />
-                                        
+                                        <LabelRequiert label="Horaires" requiert="*" />
                                         <InputHoraire
                                             ouverture={ouverture}
                                             fermeture={fermeture}
@@ -199,7 +188,11 @@ const AddSiteModal = ({ open, onClose, onSuccess , initialData = null }) => {
                                     </div>
                                     <div className="flex-1">
                                         <Label label="Statut" />
-                                        <SelectOption value={statut} onChange={setStatut} />
+                                        {/* SelectStatutSite remplace SelectOption */}
+                                        <SelectStatutSite
+                                            value={statut}
+                                            onChange={setStatut}
+                                        />
                                     </div>
                                 </div>
 

@@ -80,7 +80,8 @@ const CircuitSummary = ({ circuit }) => {
                         <span className="font-bold text-2xl text-[#08a103]">
                             {fraisReservation?.toLocaleString("fr-FR")} FCFA
                         </span>
-                    )}
+                    )}<br/>
+                    <span>par personne</span> 
                 </div>
             </div>
         </div>

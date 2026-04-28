@@ -9,20 +9,41 @@ import { AlertCircle, CheckCircle, X } from "lucide-react";
 import ImageUploadMultiple from "../../../components/common/ui/ImageUploadMultiple";
 import FileUploadMultiple from "../../../components/common/ui/FileUploadMultiple";
 import VideoUploadMultiple from "../../../components/common/ui/VideoUploadMultiple";
+import { getUserId } from "../../../service/token/TokenService";
+
 
 const CircuitForm = ({ onClose, onSuccess, initialData = null }) => {
+    console.log("initialData reçu :", JSON.stringify(initialData, null, 2)); 
     const isEdit = !!initialData;
 
-    const [statut, setStatut]                   = useState(initialData?.statut ?? "Brouillon");
-    const [transportInclus, setTransportInclus] = useState(initialData?.transportInclus ?? false);
+    const [statut, setStatut]                   = useState(initialData?.statut ?? "BROUILLON");
+    const [transportInclus, setTransportInclus] = useState(initialData?.transportInclus ?? initialData?.transport ?? false);
     const [sitesSelected, setSitesSelected]     = useState(initialData?.sites ?? []);
-    const [guidesSelected, setGuidesSelected]   = useState(initialData?.guides ?? []);
+
+    const [guidesSelected, setGuidesSelected] = useState(
+        Array.isArray(initialData?.guide)
+            ? initialData.guide
+            : initialData?.guide
+                ? [initialData.guide]
+                : initialData?.guides ?? []
+    );
+
     const [loading, setLoading]                 = useState(false);
     const [error, setError]                     = useState(null);
     const [success, setSuccess]                 = useState(null);
-    const [images, setImages]                   = useState([]);
-    const [videos, setVideos]                   = useState([]);
-    const [fichiers, setFichiers]               = useState([]);
+
+    const [images, setImages] = useState(
+    initialData?.images ??
+    (Array.isArray(initialData?.image)
+        ? initialData.image
+        : initialData?.image
+            ? [initialData.image]
+            : [])
+);
+    const [videos,   setVideos]   = useState(initialData?.videos   ?? []);
+    const [fichiers, setFichiers] = useState(initialData?.fichiers ?? []);
+
+    const userId = getUserId();
 
     useEffect(() => {
         if (!error) return;
@@ -52,7 +73,6 @@ const CircuitForm = ({ onClose, onSuccess, initialData = null }) => {
         setError(null);
         setLoading(true);
 
-        // 
         const formData = new FormData();
         formData.append("circuitName",           form.circuitName);
         formData.append("description",           form.description ?? "");
@@ -61,22 +81,55 @@ const CircuitForm = ({ onClose, onSuccess, initialData = null }) => {
         formData.append("dateLimiteReservation", form.dateLimiteReservation);
         formData.append("lieuRassemblement",     form.lieuRassemblement ?? "");
         formData.append("heureDepart",           form.heureDepart ?? "");
-        formData.append("prixIndividuel",        parseFloat(form.prix) || 0);
-        formData.append("nombreExact",           parseInt(form.nombreExact) || 0);
+        formData.append("prixIndividuel",        parseFloat(form.prix)       || 0);
+        formData.append("nombreExact",           parseInt(form.nombreExact)  || 0);
         formData.append("statut",                statut);
         formData.append("transport",             transportInclus);
-        formData.append("agenceId",              125);
-        sitesSelected.forEach(s  => formData.append("siteIds",  s.id));
-        guidesSelected.forEach(g => formData.append("guideIds", g.id));
-        images.forEach(img       => formData.append("images",   img));  
-        videos.forEach(vid       => formData.append("videos",   vid));   
-        fichiers.forEach(fic     => formData.append("fichiers", fic));   
+
+        const agenceIdValue = isEdit
+            ? initialData?.agenceId 
+            ?? initialData?.agence?.id 
+            ?? initialData?.agency?.id 
+            ?? userId
+            : userId;
+
+            
+        if (agenceIdValue != null) {
+            formData.append("agenceId", String(agenceIdValue));
+        }
+
+        sitesSelected.filter(s => s?.id != null).forEach(s => formData.append("siteIds",  s.id));
+        guidesSelected.filter(g => g?.id != null).forEach(g => formData.append("guideIds", g.id));
+
+        images.forEach(img => {
+            if (img instanceof File) {
+                formData.append("images", img);
+            } else if (typeof img === "string") {
+                formData.append("existingImages", img);
+            }
+        });
+
+        videos.forEach(vid => {
+            if (vid instanceof File) {
+                formData.append("videos", vid);
+            } else if (typeof vid === "string") {
+                formData.append("existingVideos", vid);
+            }
+        });
+
+        fichiers.forEach(fic => {
+            if (fic instanceof File) {
+                formData.append("fichiers", fic);
+            } else if (typeof fic === "string") {
+                formData.append("existingFichiers", fic);
+            }
+        });
 
         try {
             if (isEdit) {
-                await putCircuit(initialData.id, formData);  
+                await putCircuit(initialData.id, formData);
             } else {
-                await postCircuit(formData);  
+                await postCircuit(formData);
             }
             setSuccess(isEdit ? "Circuit modifié avec succès !" : "Circuit créé avec succès !");
             setTimeout(() => {
@@ -160,21 +213,20 @@ const CircuitForm = ({ onClose, onSuccess, initialData = null }) => {
                     </div>
                 </div>
 
-                {/*onChange sur chaque composant */}
                 <div className="border border-dashed border-gray-200 rounded-2xl p-4 space-y-3">
                     <p className="text-xs text-gray-400 font-medium">Médias & fichiers</p>
                     <div className="flex gap-6 items-start flex-wrap">
                         <div className="space-y-1">
                             <span className="text-[11px] text-gray-400">Images</span>
-                            <ImageUploadMultiple onChange={setImages} />
+                            <ImageUploadMultiple existantes={images}  onChange={setImages}   />
                         </div>
                         <div className="space-y-1">
                             <span className="text-[11px] text-gray-400">Vidéos</span>
-                            <VideoUploadMultiple onChange={setVideos} />
+                            <VideoUploadMultiple existantes={videos}  onChange={setVideos}   />
                         </div>
                         <div className="space-y-1">
                             <span className="text-[11px] text-gray-400">Fichiers</span>
-                            <FileUploadMultiple onChange={setFichiers} />
+                            <FileUploadMultiple  existants={fichiers} onChange={setFichiers} />
                         </div>
                     </div>
                 </div>

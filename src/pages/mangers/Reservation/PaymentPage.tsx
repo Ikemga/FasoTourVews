@@ -1,12 +1,20 @@
-import { useState }              from "react";
-import { ArrowLeft, ShieldCheck } from "lucide-react";
-import { CATEGORIES, OPERATORS }  from "./component/paie/Paymentconstants";
-import PaymentSuccess             from "./component/paie/PaymentSuccess";
-import CategoryCard               from "./component/paie/CategoryCard";
-import MobileMoneyPanel           from "./component/paie/MobileMoneyPanel";
-import CarteBancairePanel         from "./component/paie/CarteBancairePanel";
-import VirementPanel              from "./component/paie/VirementPanel";
-import { createPaiement } from "../../../service/PaiementService";
+import { useEffect, useState }     from "react";
+import { ArrowLeft, ShieldCheck }  from "lucide-react";
+import { CATEGORIES, OPERATORS }   from "./component/paie/Paymentconstants";
+import PaymentSuccess              from "./component/paie/PaymentSuccess";
+import CategoryCard                from "./component/paie/CategoryCard";
+import MobileMoneyPanel            from "./component/paie/MobileMoneyPanel";
+import CarteBancairePanel          from "./component/paie/CarteBancairePanel";
+import VirementPanel               from "./component/paie/VirementPanel";
+import { createPaiement }          from "../../../service/PaiementService";
+
+/* ── Mapping id UI → enum backend ── */
+const toModePaiement = (category, operator) => {
+    if (category === "mobile")   return "MOBILE_MONEY";
+    if (category === "carte")    return "CARTE_BANCAIRE";
+    if (category === "virement") return "VIREMENT";
+    return "ESPECES";
+};
 
 const PaymentPage = ({
     circuit,
@@ -19,8 +27,8 @@ const PaymentPage = ({
 }) => {
 
     const montantTotal     = reservationData?.montantTotal     ?? 0;
-    const montant = montantAPayer ?? montantTotal ?? (total + fraisReservation) ?? 0;
     const fraisReservation = reservationData?.fraisReservation ?? 0;
+
     const [category, setCategory] = useState("mobile");
     const [operator, setOperator] = useState("orange");
     const [phone,    setPhone]    = useState("");
@@ -29,22 +37,32 @@ const PaymentPage = ({
     const [loading,  setLoading]  = useState(false);
     const [error,    setError]    = useState(null);
 
-    const selectedOp = OPERATORS.find(o => o.id === operator);
+    useEffect(() => {
+        if (!error) return;
+        const timer = setTimeout(() => setError(null), 3000);
+        return () => clearTimeout(timer);
+    }, [error]);
 
+    const selectedOp  = OPERATORS.find(o => o.id === operator);
     const methodLabel =
-        category === "mobile" ? (selectedOp?.label ?? "Mobile Money") :
-        category === "carte"  ? "Carte bancaire" :
-        "Virement";
+        category === "mobile"   ? (selectedOp?.label ?? "Mobile Money") :
+        category === "carte"    ? "Carte bancaire" : "Virement";
 
-
-        const handlePay = async () => {
-            console.log("montant =", montant);
-            console.log("montantAPayer prop =", montantAPayer);
-            console.log("reservationData =", reservationData);
-                if (category === "mobile" && phone.replace(/\s/g, "").length < 8) {
-            setError("Veuillez entrer un numéro valide.");
-            return;
+    /* ── Validation ── */
+    const valider = () => {
+        if (category === "mobile") {
+            if (!operator)                                return "Choisissez un opérateur.";
+            if (phone.replace(/\s/g, "").length < 8)      return "Numéro de téléphone invalide.";
+            if (!holder)                                  return "Code OTP requis.";
         }
+        if (category === "carte" && !holder)              return "Informations carte incomplètes.";
+        return null;
+    };
+
+    /* ── Paiement ── */
+    const handlePay = async () => {
+        const errMsg = valider();
+        if (errMsg) { setError(errMsg); return; }
 
         setError(null);
         setLoading(true);
@@ -53,14 +71,14 @@ const PaymentPage = ({
             await createPaiement({
                 reservationId: reservationData?.id,
                 montantPaye:   montantAPayer,
+                modePaiement:  toModePaiement(category, operator),
             });
-
             setStep("done");
-
         } catch (err) {
-            const message = err?.response?.data?.message
-                ?? "Une erreur est survenue lors du paiement. Veuillez réessayer.";
-            setError(message);
+            setError(
+                err?.response?.data?.message
+                ?? "Une erreur est survenue lors du paiement. Veuillez réessayer."
+            );
         } finally {
             setLoading(false);
         }
@@ -108,7 +126,7 @@ const PaymentPage = ({
                             key={cat.id}
                             item={cat}
                             selected={category === cat.id}
-                            onClick={() => setCategory(cat.id)}
+                            onClick={setCategory}
                         />
                     ))}
                 </div>
@@ -116,12 +134,9 @@ const PaymentPage = ({
                 {/* Panel actif */}
                 {category === "mobile" && (
                     <MobileMoneyPanel
-                        operator={operator}
-                        setOperator={setOperator}
-                        phone={phone}
-                        setPhone={setPhone}
-                        holder={holder}
-                        setHolder={setHolder}
+                        operator={operator} setOperator={setOperator}
+                        phone={phone}       setPhone={setPhone}
+                        holder={holder}     setHolder={setHolder}
                     />
                 )}
                 {category === "carte"    && <CarteBancairePanel holder={holder} setHolder={setHolder} />}
@@ -137,6 +152,7 @@ const PaymentPage = ({
                             {total?.toLocaleString("fr-FR")} FCFA
                         </span>
                     </div>
+
                     <div className="flex justify-between items-center text-sm text-gray-500">
                         <span>Frais de réservation</span>
                         {fraisReservation != null ? (
@@ -147,7 +163,7 @@ const PaymentPage = ({
                             <span className="inline-block w-20 h-4 bg-gray-200 rounded animate-pulse" />
                         )}
                     </div>
-                    
+
                     <div className="flex justify-between items-center text-sm text-gray-500">
                         <span>Montant total</span>
                         <span className="font-semibold text-gray-800">
@@ -163,9 +179,15 @@ const PaymentPage = ({
                             {montantAPayer?.toLocaleString("fr-FR")} FCFA
                         </span>
                     </div>
+
+                    {/*Rappel du mode sélectionné visible par l'utilisateur */}
+                    <div className="flex justify-between items-center text-xs text-gray-400 pt-1">
+                        <span>Mode de paiement</span>
+                        <span className="font-semibold text-gray-600">{methodLabel}</span>
+                    </div>
                 </div>
 
-                {/*Erreur API ou validation */}
+                {/* Erreur */}
                 {error && (
                     <p className="text-sm text-red-500 bg-red-50 border border-red-100 px-4 py-3 rounded-xl">
                         {error}

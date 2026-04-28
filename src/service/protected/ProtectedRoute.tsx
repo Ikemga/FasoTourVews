@@ -1,20 +1,15 @@
 import { Navigate } from "react-router-dom";
+import { getAccessToken } from "../api/Api";
 import { useAuth } from "./useAuth";
 
-type Role = "ADMIN" | "AGENCE" | "TOURISTE" | "GUIDE";
-
-interface Props {
-  roles: Role[];
-  children: React.ReactNode;
-}
-
-const ProtectedRoute = ({ roles, children }: Props) => {
+const ProtectedRoute = ({ children, roles }) => {
+  const token = getAccessToken();
   const { hasRole } = useAuth();
 
-  if (!hasRole(...roles)) {
-    return <Navigate to="/unauthorized" replace />;
-  }
-  return <>{children}</>;
+  if (!token) return <Navigate to="/login" replace />;
+  if (roles && !hasRole(...roles)) return <Navigate to="/403" replace />;
+
+  return children;
 };
 
 export default ProtectedRoute;

@@ -1,14 +1,32 @@
 import { useEffect, useState } from "react";
 import DataTable from "../../../../components/common/ui/DataTable";
 import { reservationsColumns } from "../../../../components/common/ui/tableConfigs";
-import { getReservationsByRecent } from "../../../../service/ReservationService";
+import {
+    getMesReservations,
+    getReservationsByRecent,
+    getReservationsByTouriste,
+    annuleeReservation,
+} from "../../../../service/ReservationService";
+import { getRole } from "../../../../service/api/Api";
+import { getUserId } from "../../../../service/token/TokenService";
+import ReservationDetailDrawer from "./ReservationDetailDrawer";
 
-const AllReservationListe = ({ statut }: { statut?: string }) => {
+interface Props {
+    statut?:     string;
+    touristeId?: number;
+    search?:     string;
+}
 
-    const [reservations,   setReservations]   = useState([]);
-    const [loading,        setLoading]        = useState(true);
-    const [error,          setError]          = useState(null);
-    const [successMessage, setSuccessMessage] = useState("");
+const AllReservationListe = ({ statut, touristeId, search }: Props) => {
+
+    const [reservations,    setReservations]    = useState([]);
+    const [loading,         setLoading]         = useState(true);
+    const [error,           setError]           = useState(null);
+    const [successMessage,  setSuccessMessage]  = useState("");
+    const [selectedRow,     setSelectedRow]     = useState<any>(null); // ← drawer
+
+    const role          = getRole();
+    const currentUserId = Number(getUserId());
 
     const showSuccess = (message: string) => {
         setSuccessMessage(message);
@@ -16,32 +34,68 @@ const AllReservationListe = ({ statut }: { statut?: string }) => {
     };
 
     const fetchReservations = async () => {
-    try {
         setLoading(true);
         setError(null);
-        const response = await getReservationsByRecent();
-        setReservations(response.data);
-    } catch (err) {
-        setError("Impossible de charger les réservations.");
-        console.error(err);
-    } finally {
-        setLoading(false);
-    }
-};
+        try {
+            let data: any[] = [];
+
+            if (role === "TOURISTE") {
+                data = await getReservationsByTouriste(touristeId ?? currentUserId);
+            } else if (role === "AGENCE") {
+                const res = await getMesReservations();
+                data = res.data ?? res;
+            } else {
+                const res = await getReservationsByRecent();
+                data = res.data ?? res;
+            }
+
+            if (statut) {
+                data = data.filter((r: any) => r.statut === statut);
+            }
+
+            if (search) {
+                const q = search.toLowerCase();
+                data = data.filter((r: any) =>
+                    r.reference?.toLowerCase().includes(q)   ||
+                    r.circuitName?.toLowerCase().includes(q) ||
+                    r.nomComplet?.toLowerCase().includes(q)
+                );
+            }
+
+            setReservations(data);
+        } catch (err) {
+            setError("Impossible de charger les réservations.");
+            console.error(err);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
-        const timer = setTimeout(() => fetchReservations(statut), 400);
+        const timer = setTimeout(() => fetchReservations(), 400);
         return () => clearTimeout(timer);
-    }, [statut]);
+    }, [statut, touristeId, search]);
 
-    const handleDelete = async (row: any) => {
-        if (!confirm("Supprimer cette réservation ?")) return;
+    const handleCancel = async (row: any) => {
+        if (!confirm("Voulez-vous vraiment annuler cette réservation ?")) return;
         try {
-            await deleteReservation(row.id);
-            setReservations((prev: any[]) => prev.filter((r) => r.id !== row.id));
-            showSuccess("Réservation supprimée avec succès !");
+            await annuleeReservation(row.id);
+            setReservations((prev: any[]) =>
+                prev.map((r: any) =>
+                    r.id === row.id ? { ...r, statut: "ANNULEE", statutDescription: "Réservation annulée" } : r
+                )
+            );
+            // Mettre à jour le drawer si la réservation annulée est celle affichée
+            if (selectedRow?.id === row.id) {
+                setSelectedRow((prev: any) => ({
+                    ...prev,
+                    statut: "ANNULEE",
+                    statutDescription: "Réservation annulée",
+                }));
+            }
+            showSuccess("Réservation annulée avec succès !");
         } catch (err) {
-            console.error("Erreur lors de la suppression :", err);
+            console.error("Erreur lors de l'annulation :", err);
         }
     };
 
@@ -75,7 +129,7 @@ const AllReservationListe = ({ statut }: { statut?: string }) => {
                 <div className="text-center py-8 text-red-400 text-sm bg-red-50 rounded-xl border border-red-100">
                     {error}
                     <button
-                        onClick={() => fetchReservations(statut)}
+                        onClick={fetchReservations}
                         className="ml-3 underline text-red-500 hover:text-red-700"
                     >
                         Réessayer
@@ -83,17 +137,24 @@ const AllReservationListe = ({ statut }: { statut?: string }) => {
                 </div>
             )}
 
-            {/*  Table */}
+            {/* Table */}
             {!loading && !error && (
                 <DataTable
                     rows={reservations}
                     columns={reservationsColumns}
-                    onView={(row) => console.log("voir", row)}
-                    onEdit={(row) => console.log("éditer", row)}
-                    onDelete={handleDelete}
-                    emptyText="Aucune réservation trouvée."
+                    onView={(row) => setSelectedRow(row)}  // ← ouvre le drawer
+                    onCancel={handleCancel}
                 />
             )}
+
+            {/* Drawer détail */}
+            <ReservationDetailDrawer
+                reservation={selectedRow}
+                onClose={() => setSelectedRow(null)}
+                onCancel={(row) => {
+                    handleCancel(row);
+                }}
+            />
         </div>
     );
 };

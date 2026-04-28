@@ -43,13 +43,18 @@ const EditSiteModal = ({ open, onClose, onSuccess, site }) => {
     const [ouverture, setOuverture] = useState("08:00");
     const [fermeture, setFermeture] = useState("17:00");
 
-
     useEffect(() => {
-        if (site?.categories) setSelectedCats(site.categories);
-
+        if (site?.categories)    setSelectedCats(site.categories);
         if (site?.heureOuverture) setOuverture(site.heureOuverture);
         if (site?.heureFermeture) setFermeture(site.heureFermeture);
-    }, [site]);
+
+        // Initialiser les médias avec les URLs existantes
+        
+        setPhotos(  site?.image   ? [site.image]   : []);
+        setVideos(  site?.video   ? [site.video]   : []);
+        setFichiers(site?.fichier ? [site.fichier] : []);
+        }, [site]);
+
 
     useEffect(() => {
         if (!error) return;
@@ -66,51 +71,82 @@ const EditSiteModal = ({ open, onClose, onSuccess, site }) => {
 
     if (!open) return null;
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+const handleSubmit = async (e) => {
+    e.preventDefault();
 
-        if (!ouverture || !fermeture) {
-            setError("Les horaires d'ouverture et de fermeture sont requis.");
-            return;
-        }
+    if (!ouverture || !fermeture) {
+        setError("Les horaires d'ouverture et de fermeture sont requis.");
+        return;
+    }
 
-        setLoading(true);
-        setError(null);
-        setSuccess(null);
+    setLoading(true);
+    setError(null);
+    setSuccess(null);
 
-        const formData = new FormData(e.currentTarget);
+    const form = e.currentTarget;
+    const formData = new FormData();
 
-        const payload = {
-            nom:          formData.get("nom"),
-            region:       formData.get("region"),
-            description:  formData.get("description"),
-            localisation: formData.get("localisation"),
-            noteMoyenne:  formData.get("noteMoyenne"),
-            categorieIds: selectedCats.map(c => c.id),
-            heureOuverture: ouverture,
-            heureFermeture: fermeture, 
-            tarif:        formData.get("tarif"),
-            statut:       formData.get("statut"),
-        };
+    // Champs texte
+    formData.append("nom",          form.nom.value);
+    formData.append("region",       form.region.value);
+    formData.append("description",  form.description.value);
+    formData.append("localisation", form.localisation.value);
+    formData.append("noteMoyenne",  form.noteMoyenne.value || 0);
+    formData.append("tarif",        form.tarif.value || 0);
+    formData.append("statut",       form.statut.value);
 
-        try {
-            await putSites(site.id, payload);
-            console.log("PAYLOAD horaire:", payload.horaire);
-            console.log("ouverture state:", ouverture);
-            console.log("fermeture state:", fermeture);
-            setSuccess("Site modifié avec succès !");
-            setTimeout(() => {
-                setSuccess(null);
-                onSuccess?.();
-                onClose();
-            }, 2000);
-        } catch (err) {
-            console.error("Erreur modification site :", err);
-            setError(err.response?.data?.message || "Une erreur est survenue.");
-        } finally {
-            setLoading(false);
-        }
-    };
+    // Horaires
+    formData.append("heureOuverture", ouverture);
+    formData.append("heureFermeture", fermeture);
+
+    // Catégories
+    selectedCats.forEach(cat => formData.append("categorieIds", cat.id));
+
+    // "image" : envoyer seulement le nouveau fichier File s'il existe
+    const newImage = photos.find(p => p instanceof File);
+    if (newImage) {
+        formData.append("image", newImage); // backend: @RequestPart("image") MultipartFile
+    }
+    // Si pas de nouveau fichier → le backend garde l'ancienne image automatiquement
+
+    //"video" : le backend attend une string (URL)
+    const newVideo = videos.find(v => v instanceof File);
+    if (newVideo) {
+        formData.append("video", newVideo);
+    } else {
+        const existingVideo = videos.find(v => typeof v === "string");
+        if (existingVideo) formData.append("video", existingVideo);
+    }
+
+    // "fichier" : idem string
+    const newFichier = fichiers.find(f => f instanceof File);
+    if (newFichier) {
+        formData.append("fichier", newFichier);
+    } else {
+        const existingFichier = fichiers.find(f => typeof f === "string");
+        if (existingFichier) formData.append("fichier", existingFichier);
+    }
+
+    // Debug : voir ce qui part au backend
+    for (let [key, value] of formData.entries()) {
+        console.log(key, "→", value);
+    }
+
+    try {
+        await putSites(site.id, formData);
+        setSuccess("Site modifié avec succès !");
+        setTimeout(() => {
+            setSuccess(null);
+            onSuccess?.();
+            onClose();
+        }, 2000);
+    } catch (err) {
+        console.error("Erreur modification site :", err);
+        setError(err.response?.data?.message || "Une erreur est survenue.");
+    } finally {
+        setLoading(false);
+    }
+};
 
     return (
         <>
@@ -199,15 +235,21 @@ const EditSiteModal = ({ open, onClose, onSuccess, site }) => {
                                 <div className="flex gap-6 pt-1">
                                     <div>
                                         <Label label="Photos" />
-                                        <div className="mt-1"><ImageUploadMultiple onChange={setPhotos} existantes={site?.photos} /></div>
+                                        <div className="mt-1">
+                                            <ImageUploadMultiple onChange={setPhotos}   existantes={photos}   />
+                                        </div>
                                     </div>
                                     <div>
                                         <Label label="Vidéos" />
-                                        <div className="mt-1"><VideoUploadMultiple onChange={setVideos} existantes={site?.videos} /></div>
+                                        <div className="mt-1">
+                                            <VideoUploadMultiple onChange={setVideos}   existantes={videos}   />
+                                        </div>
                                     </div>
                                     <div>
                                         <Label label="Fichiers" />
-                                        <div className="mt-1"><FileUploadMultiple onChange={setFichiers} existants={site?.fichiers} /></div>
+                                        <div className="mt-1">
+                                            <FileUploadMultiple  onChange={setFichiers} existants={fichiers}  />
+                                        </div>
                                     </div>
                                 </div>
 

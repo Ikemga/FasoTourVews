@@ -1,7 +1,8 @@
-import { useEffect, useState }          from "react";
-import DataTable                        from "../../../../components/common/ui/DataTable";
-import {reservationsExpireesColumns }  from "../../../../components/common/ui/tableConfigs";
-import { deleteReservation, getReservationByStatut } from "../../../../service/ReservationService";
+import { useEffect, useState }                                          from "react";
+import DataTable                                                         from "../../../../components/common/ui/DataTable";
+import { reservationsExpireesColumns }                                   from "../../../../components/common/ui/tableConfigs";
+import { deleteReservation, getMesReservations, getReservationByStatut } from "../../../../service/ReservationService";
+import ReservationDetailDrawer                                           from "./ReservationDetailDrawer";
 
 const ExpireeListe = () => {
 
@@ -9,6 +10,7 @@ const ExpireeListe = () => {
     const [loading,        setLoading]        = useState(true);
     const [error,          setError]          = useState(null);
     const [successMessage, setSuccessMessage] = useState("");
+    const [selectedRow,    setSelectedRow]    = useState<any>(null);
 
     const showSuccess = (message: string) => {
         setSuccessMessage(message);
@@ -16,9 +18,14 @@ const ExpireeListe = () => {
     };
 
     useEffect(() => {
-        getReservationByStatut("EXPIREE")
-            .then(res  => setReservations(res.data))
-            .catch(()  => setError("Impossible de charger les réservations expirées."))
+        const role = localStorage.getItem("role");
+        const apiCall = role?.includes("AGENCE")
+            ? getMesReservations("EXPIREE")
+            : getReservationByStatut("EXPIREE");
+
+        apiCall
+            .then(res => setReservations(res.data))
+            .catch(() => setError("Impossible de charger les réservations expirées."))
             .finally(() => setLoading(false));
     }, []);
 
@@ -26,7 +33,9 @@ const ExpireeListe = () => {
         if (!confirm("Supprimer cette réservation ?")) return;
         try {
             await deleteReservation(row.id);
-            setReservations((prev: any[]) => prev.filter((r) => r.id !== row.id));
+            setReservations((prev: any[]) => prev.filter((r: any) => r.id !== row.id));
+            // Fermer le drawer si la ligne supprimée est celle affichée
+            if (selectedRow?.id === row.id) setSelectedRow(null);
             showSuccess("Réservation supprimée avec succès !");
         } catch (err) {
             console.error("Erreur lors de la suppression :", err);
@@ -66,11 +75,18 @@ const ExpireeListe = () => {
                 <DataTable
                     rows={reservations}
                     columns={reservationsExpireesColumns}
-                    onView={(row)   => console.log("voir", row)}
-                    onDelete={handleDelete}
+                    onView={(row) => setSelectedRow(row)}   // ← ouvre le drawer
                     emptyText="Aucune réservation expirée."
                 />
             )}
+
+            {/* Drawer détail — pas de bouton annulation pour les expirées */}
+            <ReservationDetailDrawer
+                reservation={selectedRow}
+                onClose={() => setSelectedRow(null)}
+                onCancel={() => {}}   // statut EXPIREE → bouton masqué dans le drawer
+            />
+
         </div>
     );
 };

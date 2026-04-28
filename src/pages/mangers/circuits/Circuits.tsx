@@ -4,7 +4,13 @@ import SpecifiqueRechercheBarre from "../../../components/common/ui/SpecifiqueRe
 import HeaderTitle from "../../../components/common/utilitaire/HeaderTitle";
 import { useCallback, useEffect, useState } from "react";
 import AddCircuitModal from "../../../components/common/ui/AddCircuitModal";
-import { deleteCircuit, getCircuitsByDateDesc, getCircuitsByStatutRecent, searchCircuit } from "../../../service/CircuitService";
+import {
+    deleteCircuit,
+    getCircuitsByStatutRecent,
+    getCircuitsByAgenceId,
+    searchCircuit,
+} from "../../../service/CircuitService";
+import { getRole } from "../../../service/api/Api";
 import CircuitsCard from "./CircuitsCard";
 import CircuitDetail from "./circuitDetail/CircuitDetail";
 import ReservationPage from "../Reservation/ReservationPage";
@@ -19,6 +25,10 @@ const Circuits = ({ onToggleSidebar }) => {
     const [loading, setLoading]                   = useState(false);
     const [circuitAReserver, setCircuitAReserver] = useState(null);
 
+    const role      = getRole();
+    //AGENCE et ADMIN peuvent gérer les circuits
+    const canManage = role === "AGENCE" || role === "ADMIN";
+
     useEffect(() => {
         fetchCircuits();
     }, []);
@@ -26,20 +36,20 @@ const Circuits = ({ onToggleSidebar }) => {
     const fetchCircuits = async () => {
         setLoading(true);
         try {
-            const response = await getCircuitsByStatutRecent("ACTIF");
+            const role = getRole();
+
+            const response = role === "AGENCE"
+                ? await getCircuitsByAgenceId("ACTIF")
+                : await getCircuitsByStatutRecent("ACTIF");
 
             const data = response.data;
-
             const liste = Array.isArray(data)
                 ? data
                 : data.content ?? data.data ?? data.circuits ?? [];
-            console.log("Premier circuit:", liste[0]);
+                console.log(data)
             liste.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-
             setCircuits(liste);
             setDisplayed(liste);
-
-            // Rafraîchit le détail ouvert si besoin
             setSelectedCircuit(prev =>
                 prev ? liste.find(c => c.id === prev.id) ?? prev : null
             );
@@ -78,7 +88,6 @@ const Circuits = ({ onToggleSidebar }) => {
         }
     }, []);
 
-    // ── Vue : page de réservation ──────────────────────────────
     if (circuitAReserver) {
         return (
             <ReservationPage
@@ -88,7 +97,6 @@ const Circuits = ({ onToggleSidebar }) => {
         );
     }
 
-    // ── Vue : détail d'un circuit ──────────────────────────────
     if (selectedCircuit) {
         return (
             <CircuitDetail
@@ -98,11 +106,11 @@ const Circuits = ({ onToggleSidebar }) => {
                 onToggleSidebar={onToggleSidebar}
                 onRefresh={fetchCircuits}
                 onReserve={() => setCircuitAReserver(selectedCircuit)}
+                canManage={canManage}
             />
         );
     }
 
-    // ── Vue : liste des circuits ───────────────────────────────
     return (
         <div>
             <HeaderTitle
@@ -112,7 +120,6 @@ const Circuits = ({ onToggleSidebar }) => {
                 onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
             />
 
-            {/* Toast succès */}
             {success && (
                 <div className="fixed top-5 right-5 z-[9999] flex items-center gap-3 bg-white border border-green-200 text-green-600 text-sm px-5 py-3 rounded-2xl shadow-lg transition-all duration-300">
                     <CheckCircle size={18} className="shrink-0" />
@@ -120,24 +127,23 @@ const Circuits = ({ onToggleSidebar }) => {
                 </div>
             )}
 
-            {/* Toolbar */}
             <div className="mx-5 py-5 flex justify-between items-center gap-6">
                 <h4 className="text-2xl font-bold">Liste des circuits</h4>
-
                 <SpecifiqueRechercheBarre
                     searchFn={searchCircuit}
                     onResults={handleSearch}
                     placeholder="Rechercher un circuit ...."
                 />
-
-                <BouttonPopUp
-                    label="Nouveau circuit"
-                    icon={<PlusCircle size={18} />}
-                    onClick={() => setOpenModal(true)}
-                />
+                
+                {canManage && (
+                    <BouttonPopUp
+                        label="Nouveau circuit"
+                        icon={<PlusCircle size={18} />}
+                        onClick={() => setOpenModal(true)}
+                    />
+                )}
             </div>
 
-            {/* Loader */}
             {loading && (
                 <div className="flex items-center justify-center py-16">
                     <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
@@ -145,7 +151,6 @@ const Circuits = ({ onToggleSidebar }) => {
                 </div>
             )}
 
-            {/* Grille de cartes */}
             <div className="mx-5 grid sm:grid-cols-1 md:grid-cols-1 lg:grid-cols-3 gap-4">
                 {displayed.length === 0 ? (
                     <p className="text-gray-400 italic col-span-3 text-center py-10">
@@ -163,10 +168,13 @@ const Circuits = ({ onToggleSidebar }) => {
                             nombreExact={circuit.nombreExact}
                             prixIndividuel={circuit.prixIndividuel}
                             sites={circuit.sites}
+                            //CORRECTION : passer les deux pour compatibilité
                             guide={circuit.guide}
+                            guides={circuit.guides}
                             onDelete={() => handleDelete(circuit.id)}
                             onDetail={() => setSelectedCircuit(circuit)}
                             onReserve={() => setCircuitAReserver(circuit)}
+                            canManage={canManage}
                         />
                     ))
                 )}

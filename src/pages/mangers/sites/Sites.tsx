@@ -5,22 +5,23 @@ import HeaderTitle from "../../../components/common/utilitaire/HeaderTitle";
 import { useEffect, useState } from "react";
 import AddSiteModal from "../../../components/common/ui/AddSiteModal";
 import { deleteSites, getSitesOrderByLaste, searchSites } from "../../../service/SiteService";
+import { getRole } from "../../../service/api/Api";
 import SiteCard from "./SiteCard";
 import SitesDetail from "./siteDetail/SitesDetail";
 import Badge from "./siteDetail/Badge";
 
-
 const Sites = ({ onToggleSidebar }) => {
-    const [openModal, setOpenModal]           = useState(false);
-    const [sites, setSites]                   = useState([]);
-    const [displayed, setDisplayed]           = useState([]);
-    const [success, setSuccess]               = useState(null);
-    const [selectedSite, setSelectedSite]     = useState(null);
-    const [loading, setLoading]               = useState(false);
+    const [openModal, setOpenModal]       = useState(false);
+    const [sites, setSites]               = useState([]);
+    const [displayed, setDisplayed]       = useState([]);
+    const [success, setSuccess]           = useState(null);
+    const [selectedSite, setSelectedSite] = useState(null);
+    const [loading, setLoading]           = useState(false);
 
-    useEffect(() => {
-        fetchSites();
-    }, []);
+    const role     = getRole();
+    const isAdmin  = role === "ADMIN";
+
+    useEffect(() => { fetchSites(); }, []);
 
     const fetchSites = async () => {
         setLoading(true);
@@ -30,21 +31,19 @@ const Sites = ({ onToggleSidebar }) => {
             const liste = Array.isArray(data)
                 ? data
                 : data.content ?? data.data ?? data.sites ?? [];
-                console.log("EXEMPLE SITE :", liste[0]);
 
             liste.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
             setSites(liste);
             setDisplayed(liste);
-
             setSelectedSite(prev =>
                 prev ? liste.find(s => s.id === prev.id) ?? prev : null
-        );
+            );
         } catch (error) {
             console.error("Erreur chargement sites", error);
             setSites([]);
             setDisplayed([]);
         } finally {
-            setLoading(false); 
+            setLoading(false);
         }
     };
 
@@ -54,9 +53,7 @@ const Sites = ({ onToggleSidebar }) => {
         setTimeout(() => setSuccess(null), 3000);
     };
 
-    const handleSearch = (results) => {
-        setDisplayed(results ?? sites);
-    };
+    const handleSearch  = (results) => setDisplayed(results ?? sites);
 
     const handleDelete = async (id) => {
         const ok = window.confirm("Confirmer la suppression ?");
@@ -71,7 +68,6 @@ const Sites = ({ onToggleSidebar }) => {
         }
     };
 
-
     if (selectedSite) {
         return (
             <SitesDetail
@@ -80,6 +76,7 @@ const Sites = ({ onToggleSidebar }) => {
                 onDelete={() => handleDelete(selectedSite.id)}
                 onToggleSidebar={onToggleSidebar}
                 onRefresh={fetchSites}
+                canDelete={isAdmin}
             />
         );
     }
@@ -138,10 +135,12 @@ const Sites = ({ onToggleSidebar }) => {
                                 <Badge key={i} label={cat.categorie ?? cat.nom} />
                             ))}
                             horaire={
-                                        site.heureOuverture && site.heureFermeture
-                                            ? `${site.heureOuverture} - ${site.heureFermeture}`
-                                            : "—"}
+                                site.heureOuverture && site.heureFermeture
+                                    ? `${site.heureOuverture} - ${site.heureFermeture}`
+                                    : "—"
+                            }
                             tarif={site.tarif}
+                            canDelete={isAdmin}                    
                             onDelete={() => handleDelete(site.id)}
                             onDetail={() => setSelectedSite(site)}
                         />

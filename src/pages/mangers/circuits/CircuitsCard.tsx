@@ -1,7 +1,7 @@
 import {MapPin, Trash2, Users, CalendarDaysIcon, ChevronRight } from 'lucide-react'; 
 
 
-const CircuitsCard = ({ image, circuitName, description, duree, nombreRestant, prixIndividuel,nombreExact,sites, guide, onDelete, onDetail, onReserve}) => {
+const CircuitsCard = ({ image, circuitName, description, duree, nombreRestant, prixIndividuel,nombreExact,sites, guide, onDelete, onDetail, onReserve, canManage}) => {
 
 
         
@@ -15,8 +15,8 @@ const CircuitsCard = ({ image, circuitName, description, duree, nombreRestant, p
         };
 
         //nombre de site
-        const nbSites = Array.isArray(sites) ? sites.length : (sites ?? 0);
-        const nguides = Array.isArray(guide) ? guide.length : (guide ?? 0);
+        const nbSites  = Array.isArray(sites) ? sites.length : 0;
+        const nguides  = Array.isArray(guide) ? guide.length : 0;
 
     return(
         <div 
@@ -27,14 +27,14 @@ const CircuitsCard = ({ image, circuitName, description, duree, nombreRestant, p
                 alt=""
                 className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"/>
 
-                {/* Bouton supprimer */}
-                <button
-                    onClick={handleDelete}
-                    className="absolute top-4 left-4 bg-white/95 backdrop-blur-sm p-2 rounded-full shadow-lg text-red-500 hover:bg-red-500 hover:text-white transition-all duration-200"
+                {canManage && (
+                    <button
+                        onClick={handleDelete}
+                        className="absolute top-4 left-4 bg-white/95 backdrop-blur-sm p-2 rounded-full shadow-lg text-red-500 hover:bg-red-500 hover:text-white transition-all duration-200"
                     >
-                    <Trash2 className="w-4 h-4" />
-                </button>
-
+                        <Trash2 className="w-4 h-4" />
+                    </button>
+                )}
             </div>
 
             <div className="p-6">

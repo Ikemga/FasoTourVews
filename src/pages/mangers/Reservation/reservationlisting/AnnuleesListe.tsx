@@ -1,8 +1,8 @@
-import { useEffect, useState }          from "react";
-import { getReservationByStatut }       from "../../../../service/ReservationService";
-import { deleteReservation }            from "../../../../service/ReservationService";
-import DataTable                        from "../../../../components/common/ui/DataTable";
-import { reservationsAnnuleesColumns }  from "../../../../components/common/ui/tableConfigs";
+import { useEffect, useState }                                          from "react";
+import { getMesReservations, getReservationByStatut, deleteReservation } from "../../../../service/ReservationService";
+import DataTable                                                         from "../../../../components/common/ui/DataTable";
+import { reservationsAnnuleesColumns }                                   from "../../../../components/common/ui/tableConfigs";
+import ReservationDetailDrawer                                           from "./ReservationDetailDrawer";
 
 const AnnuleesListe = () => {
 
@@ -10,6 +10,7 @@ const AnnuleesListe = () => {
     const [loading,        setLoading]        = useState(true);
     const [error,          setError]          = useState(null);
     const [successMessage, setSuccessMessage] = useState("");
+    const [selectedRow,    setSelectedRow]    = useState<any>(null);
 
     const showSuccess = (message: string) => {
         setSuccessMessage(message);
@@ -17,9 +18,14 @@ const AnnuleesListe = () => {
     };
 
     useEffect(() => {
-        getReservationByStatut("ANNULEE")
-            .then(res  => setReservations(res.data))
-            .catch(()  => setError("Impossible de charger les réservations annulées."))
+        const role = localStorage.getItem("role");
+        const apiCall = role?.includes("AGENCE")
+            ? getMesReservations("ANNULEE")
+            : getReservationByStatut("ANNULEE");
+
+        apiCall
+            .then(res => setReservations(res.data))
+            .catch(() => setError("Impossible de charger les réservations annulées."))
             .finally(() => setLoading(false));
     }, []);
 
@@ -27,7 +33,8 @@ const AnnuleesListe = () => {
         if (!confirm("Supprimer cette réservation ?")) return;
         try {
             await deleteReservation(row.id);
-            setReservations((prev: any[]) => prev.filter((r) => r.id !== row.id));
+            setReservations((prev: any[]) => prev.filter((r: any) => r.id !== row.id));
+            if (selectedRow?.id === row.id) setSelectedRow(null);
             showSuccess("Réservation supprimée avec succès !");
         } catch (err) {
             console.error("Erreur lors de la suppression :", err);
@@ -66,12 +73,19 @@ const AnnuleesListe = () => {
             {!loading && !error && (
                 <DataTable
                     rows={reservations}
-                    columns={reservationsAnnuleesColumns} // ✅ sans colonne statut
-                    onView={(row)   => console.log("voir", row)}
-                    onDelete={handleDelete}
+                    columns={reservationsAnnuleesColumns}
+                    onView={(row) => setSelectedRow(row)}
+                    //onDelete={handleDelete}
                     emptyText="Aucune réservation annulée."
                 />
             )}
+
+            {/* Drawer détail — pas de bouton annulation pour les annulées */}
+            <ReservationDetailDrawer
+                reservation={selectedRow}
+                onClose={() => setSelectedRow(null)}
+                onCancel={() => {}}   // statut ANNULEE → bouton masqué dans le drawer
+            />
         </div>
     );
 };

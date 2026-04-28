@@ -5,16 +5,19 @@ import { saveTokens } from "./token/TokenService";
 
 export const login = async (mail: string, motDePasse: string) => {
     const response = await Api.post("/auth/login", { mail, motDePasse });
-    return  response.data;
 
-    /*
+    const data = response.data;
+
     saveTokens({
-        accessToken:  data.accessToken,
+        accessToken: data.accessToken,
         refreshToken: data.refreshToken,
-        role :         data.role,
+        role: data.role,
+        userId: data.id
     });
-        */
+
+    return data;
 };
+
 
 export const logout = async (refreshToken: string) => {
     const response = await Api.post("/auth/logout", { refreshToken });
